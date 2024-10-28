@@ -1,0 +1,31 @@
+# Archivos de compilación de Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Archivos binarios
+/bin/
+
+# Archivos de configuración y dependencias
+vendor/
+*.mod
+*.sum
+
+# Archivos específicos de entorno
+.env
+
+# Archivos y carpetas del sistema
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Archivos de configuración de IDEs y editores
+.vscode/
+.idea/
+*.iml
+
+
+/node_modules
