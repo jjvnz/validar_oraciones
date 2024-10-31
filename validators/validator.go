@@ -52,7 +52,6 @@ func NewAutomata() *Automata {
 func clasificarPalabra(palabra string) TiposPalabra {
 	palabra = strings.ToLower(strings.TrimSpace(palabra))
 
-	// Mapas de palabras válidas por tipo
 	palabrasPorTipo := map[string]TiposPalabra{
 		// Sujetos
 		"i": TipoSujeto, "you": TipoSujeto, "he": TipoSujeto, "she": TipoSujeto,
@@ -70,137 +69,92 @@ func clasificarPalabra(palabra string) TiposPalabra {
 		// Preposiciones
 		"in": TipoPreposicion, "on": TipoPreposicion, "at": TipoPreposicion,
 		"to": TipoPreposicion, "for": TipoPreposicion, "with": TipoPreposicion,
+
+		// Verbos simples
+		"play": TipoVerboSimple, "plays": TipoVerboSimple, "played": TipoVerboSimple,
+		"eat": TipoVerboSimple, "eats": TipoVerboSimple, "ate": TipoVerboSimple,
+		"go": TipoVerboSimple, "goes": TipoVerboSimple, "went": TipoVerboSimple,
+		"like": TipoVerboSimple, "likes": TipoVerboSimple, "liked": TipoVerboSimple,
+		"see": TipoVerboSimple, "sees": TipoVerboSimple, "saw": TipoVerboSimple,
+		"know": TipoVerboSimple, "knows": TipoVerboSimple, "knew": TipoVerboSimple,
+		"visit": TipoVerboSimple, "visited": TipoVerboSimple, "visits": TipoVerboSimple,
+		"buy": TipoVerboSimple, "bought": TipoVerboSimple,
+		"walk": TipoVerboSimple, "walked": TipoVerboSimple,
+
+		// Verbos progresivos
+		"playing": TipoVerboProgresivo, "eating": TipoVerboProgresivo,
+		"going": TipoVerboProgresivo, "liking": TipoVerboProgresivo,
+		"seeing": TipoVerboProgresivo, "knowing": TipoVerboProgresivo,
+		"reading": TipoVerboProgresivo, "watching": TipoVerboProgresivo,
+
+		// Adjetivos
+		"big": TipoAdjetivo, "small": TipoAdjetivo, "good": TipoAdjetivo,
+		"bad": TipoAdjetivo, "happy": TipoAdjetivo, "sad": TipoAdjetivo,
+		"new": TipoAdjetivo, "old": TipoAdjetivo,
+
+		// Complementos
+		"book": TipoComplemento, "books": TipoComplemento, "food": TipoComplemento,
+		"game": TipoComplemento, "games": TipoComplemento, "music": TipoComplemento,
+		"movie": TipoComplemento, "movies": TipoComplemento, "house": TipoComplemento,
+		"car": TipoComplemento, "dog": TipoComplemento, "cat": TipoComplemento,
+		"school": TipoComplemento, "grandparents": TipoComplemento,
+		"store": TipoComplemento, "friends": TipoComplemento, "soccer": TipoComplemento,
 	}
 
-	// Verbos en forma simple
-	verbosSimples := map[string]bool{
-		"play": true, "plays": true, "played": true,
-		"eat": true, "eats": true, "ate": true,
-		"go": true, "goes": true, "went": true,
-		"like": true, "likes": true, "liked": true,
-		"see": true, "sees": true, "saw": true,
-		"know": true, "knows": true, "knew": true,
-		"visit": true, "visited": true, "visits": true,
-		"buy": true, "bought": true,
-		"walk": true, "walked": true,
-	}
-
-	// Verbos en forma progresiva
-	verbosProgresivos := map[string]bool{
-		"playing": true, "eating": true, "going": true,
-		"liking": true, "seeing": true, "knowing": true,
-		"reading": true, "watching": true,
-	}
-
-	// Adjetivos
-	adjetivos := map[string]bool{
-		"big": true, "small": true, "good": true, "bad": true,
-		"happy": true, "sad": true, "new": true, "old": true,
-	}
-
-	// Complementos
-	complementos := map[string]bool{
-		"book": true, "books": true, "food": true, "game": true,
-		"games": true, "music": true, "movie": true, "movies": true,
-		"house": true, "car": true, "dog": true, "cat": true,
-		"school": true, "grandparents": true, "store": true,
-		"friends": true, "soccer": true,
-	}
-
-	// Verificar tipo de palabra
 	if tipo, existe := palabrasPorTipo[palabra]; existe {
 		return tipo
 	}
-	if verbosSimples[palabra] {
-		return TipoVerboSimple
-	}
-	if verbosProgresivos[palabra] {
-		return TipoVerboProgresivo
-	}
-	if adjetivos[palabra] {
-		return TipoAdjetivo
-	}
-	if complementos[palabra] {
-		return TipoComplemento
-	}
-
 	return TipoDesconocido
 }
 
 // Transicionar realiza la transición del autómata según la palabra de entrada
-// Transicionar realiza la transición del autómata según la palabra de entrada
 func (a *Automata) Transicionar(palabra string) bool {
 	tipoPalabra := clasificarPalabra(palabra)
 
-	switch a.estado {
-	case EstadoInicio:
-		if tipoPalabra == TipoSujeto {
-			a.estado = EstadoSujeto
-			return true
-		}
+	// Tabla de transición
+	transiciones := map[int]map[TiposPalabra]int{
+		EstadoInicio: {
+			TipoSujeto: EstadoSujeto,
+		},
+		EstadoSujeto: {
+			TipoVerboAuxiliar:   EstadoVerboAuxiliar,
+			TipoVerboSimple:     EstadoVerboSimple,
+			TipoVerboProgresivo: EstadoVerboSimple,
+		},
+		EstadoVerboAuxiliar: {
+			TipoVerboProgresivo: EstadoVerboProgresivo,
+		},
+		EstadoVerboProgresivo: {
+			TipoArticulo:    EstadoArticulo,
+			TipoAdjetivo:    EstadoAdjetivo,
+			TipoComplemento: EstadoComplemento,
+			TipoPreposicion: EstadoPreposicion,
+		},
+		EstadoVerboSimple: {
+			TipoArticulo:    EstadoArticulo,
+			TipoAdjetivo:    EstadoAdjetivo,
+			TipoComplemento: EstadoComplemento,
+			TipoPreposicion: EstadoPreposicion,
+		},
+		EstadoArticulo: {
+			TipoAdjetivo:    EstadoAdjetivo,
+			TipoComplemento: EstadoComplemento,
+		},
+		EstadoAdjetivo: {
+			TipoComplemento: EstadoComplemento,
+		},
+		EstadoComplemento: {
+			// No hay transiciones desde el estado final
+		},
+		EstadoPreposicion: {
+			TipoArticulo:    EstadoArticulo,
+			TipoComplemento: EstadoComplemento,
+		},
+	}
 
-	case EstadoSujeto:
-		switch tipoPalabra {
-		case TipoVerboAuxiliar:
-			a.estado = EstadoVerboAuxiliar
-			return true
-		case TipoVerboSimple, TipoVerboProgresivo:
-			a.estado = EstadoVerboSimple
-			return true
-		}
-
-	case EstadoVerboAuxiliar:
-		if tipoPalabra == TipoVerboProgresivo {
-			a.estado = EstadoVerboProgresivo
-			return true
-		}
-
-	case EstadoVerboProgresivo, EstadoVerboSimple:
-		switch tipoPalabra {
-		case TipoArticulo:
-			a.estado = EstadoArticulo
-			return true
-		case TipoAdjetivo:
-			a.estado = EstadoAdjetivo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		case TipoPreposicion:
-			a.estado = EstadoPreposicion
-			return true
-		}
-
-	case EstadoArticulo:
-		switch tipoPalabra {
-		case TipoAdjetivo:
-			a.estado = EstadoAdjetivo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		}
-
-	case EstadoAdjetivo:
-		if tipoPalabra == TipoComplemento {
-			a.estado = EstadoComplemento
-			return true
-		}
-
-	case EstadoComplemento:
-		// Ahora verificamos que, tras un complemento, siempre pasamos al estado final.
-		a.estado = EstadoFinal
-		return true // Aceptar que ha terminado la oración
-
-	case EstadoPreposicion:
-		switch tipoPalabra {
-		case TipoArticulo:
-			a.estado = EstadoArticulo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		}
+	if nuevaEstado, existe := transiciones[a.estado][tipoPalabra]; existe {
+		a.estado = nuevaEstado
+		return true
 	}
 
 	return false

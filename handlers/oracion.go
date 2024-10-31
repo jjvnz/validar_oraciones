@@ -8,63 +8,19 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"validar_oraciones/models"
 	"validar_oraciones/validators"
 )
 
-// ResultadoOracion representa el resultado de validar una oración
-type ResultadoOracion struct {
-	Oracion     string `json:"oracion"`
-	EsValida    bool   `json:"esValida"`
-	Mensaje     string `json:"mensaje"`
-	Explicacion string `json:"explicacion"`
-}
-
-// PageVariables contiene todas las variables necesarias para la plantilla
-type PageVariables struct {
-	Oraciones        []ResultadoOracion
-	ErrorMessage     string
-	TotalOraciones   int
-	OracionesValidas int
-	ShowResults      bool
-	Estadisticas     Estadisticas
-}
-
-// Estadisticas contiene información estadística sobre las oraciones analizadas
-type Estadisticas struct {
-	PorcentajeExito float64
-	ErroresComunes  map[string]int
-	TiposValidos    map[string]int
-}
-
-// ValidadorConfig contiene la configuración para el validador
-type ValidadorConfig struct {
-	MaxOraciones   int
-	MinPalabras    int
-	MaxPalabras    int
-	LimpiarEntrada bool
-	ModoEstricto   bool
-}
-
-// NewValidadorConfig crea una nueva configuración con valores por defecto
-func NewValidadorConfig() ValidadorConfig {
-	return ValidadorConfig{
-		MaxOraciones:   5,
-		MinPalabras:    2,
-		MaxPalabras:    15,
-		LimpiarEntrada: true,
-		ModoEstricto:   false,
-	}
-}
-
 // OracionHandler maneja las solicitudes relacionadas con la validación de oraciones
 type OracionHandler struct {
-	config    ValidadorConfig
+	config    models.ValidadorConfig // Cambiado a modelos.ValidadorConfig
 	templates *template.Template
 	logger    *log.Logger
 }
 
 // NewOracionHandler crea una nueva instancia del manejador
-func NewOracionHandler(config ValidadorConfig, logger *log.Logger) (*OracionHandler, error) {
+func NewOracionHandler(config models.ValidadorConfig, logger *log.Logger) (*OracionHandler, error) {
 	tmpl, err := template.ParseFiles(filepath.Join("templates", "index.html"))
 	if err != nil {
 		return nil, err
@@ -117,7 +73,7 @@ func (h *OracionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleGet maneja las solicitudes GET
 func (h *OracionHandler) handleGet(w http.ResponseWriter, _ *http.Request) {
-	vars := PageVariables{
+	vars := models.PageVariables{
 		ShowResults: false,
 	}
 	h.renderTemplate(w, vars)
@@ -134,7 +90,7 @@ func (h *OracionHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	oraciones := h.procesarEntrada(input)
 
 	if len(oraciones) > h.config.MaxOraciones {
-		vars := PageVariables{
+		vars := models.PageVariables{
 			ErrorMessage: fmt.Sprintf("Por favor, ingrese un máximo de %d oraciones.", h.config.MaxOraciones),
 		}
 		h.renderTemplate(w, vars)
@@ -144,7 +100,7 @@ func (h *OracionHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	resultados := h.validarOraciones(oraciones)
 	stats := h.calcularEstadisticas(resultados)
 
-	vars := PageVariables{
+	vars := models.PageVariables{
 		Oraciones:        resultados,
 		TotalOraciones:   len(resultados),
 		OracionesValidas: stats.TiposValidos["válidas"],
@@ -175,12 +131,12 @@ func (h *OracionHandler) procesarEntrada(input string) []string {
 }
 
 // validarOraciones procesa y valida cada oración
-func (h *OracionHandler) validarOraciones(oraciones []string) []ResultadoOracion {
-	var resultados []ResultadoOracion
+func (h *OracionHandler) validarOraciones(oraciones []string) []models.ResultadoOracion { // Cambiado a modelos.ResultadoOracion
+	var resultados []models.ResultadoOracion
 
 	for _, oracion := range oraciones {
 		if err := h.validarLongitud(oracion); err != nil {
-			resultados = append(resultados, ResultadoOracion{
+			resultados = append(resultados, models.ResultadoOracion{
 				Oracion:     oracion,
 				EsValida:    false,
 				Mensaje:     "Longitud inválida",
@@ -190,7 +146,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []ResultadoOracion
 		}
 
 		validez, explicacion := validators.ValidarOracion(oracion)
-		resultados = append(resultados, ResultadoOracion{
+		resultados = append(resultados, models.ResultadoOracion{
 			Oracion:     oracion,
 			EsValida:    validez == "Válida",
 			Mensaje:     validez,
@@ -202,8 +158,8 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []ResultadoOracion
 }
 
 // calcularEstadisticas genera estadísticas sobre los resultados
-func (h *OracionHandler) calcularEstadisticas(resultados []ResultadoOracion) Estadisticas {
-	stats := Estadisticas{
+func (h *OracionHandler) calcularEstadisticas(resultados []models.ResultadoOracion) models.Estadisticas { // Cambiado a modelos.Estadisticas
+	stats := models.Estadisticas{
 		ErroresComunes: make(map[string]int),
 		TiposValidos:   make(map[string]int),
 	}
@@ -226,7 +182,7 @@ func (h *OracionHandler) calcularEstadisticas(resultados []ResultadoOracion) Est
 }
 
 // renderTemplate renderiza la plantilla HTML con las variables proporcionadas
-func (h *OracionHandler) renderTemplate(w http.ResponseWriter, vars PageVariables) {
+func (h *OracionHandler) renderTemplate(w http.ResponseWriter, vars models.PageVariables) { // Cambiado a modelos.PageVariables
 	if err := h.templates.Execute(w, vars); err != nil {
 		h.handleError(w, "Error al renderizar la plantilla", err)
 	}
@@ -258,8 +214,8 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 	stats := h.calcularEstadisticas(resultados)
 
 	response := struct {
-		Resultados   []ResultadoOracion `json:"resultados"`
-		Estadisticas Estadisticas       `json:"estadisticas"`
+		Resultados   []models.ResultadoOracion `json:"resultados"`   // Cambiado a modelos.ResultadoOracion
+		Estadisticas models.Estadisticas       `json:"estadisticas"` // Cambiado a modelos.Estadisticas
 	}{
 		Resultados:   resultados,
 		Estadisticas: stats,

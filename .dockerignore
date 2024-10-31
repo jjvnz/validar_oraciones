@@ -1,0 +1,15 @@
+# Ignorar archivos de configuración de editor
+*.swp
+*.swo
+*.DS_Store
+
+# Ignorar archivos de compilación
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Ignorar archivos de pruebas
+/test/

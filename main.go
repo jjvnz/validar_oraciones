@@ -7,25 +7,12 @@ import (
 	"time"
 	"validar_oraciones/handlers"
 	"validar_oraciones/middleware"
+	"validar_oraciones/models"
 )
 
-// Config contiene la configuración de la aplicación
-type Config struct {
-	Port            string
-	StaticDir       string
-	TemplatesDir    string
-	MaxRequestSize  int64
-	ReadTimeout     time.Duration
-	WriteTimeout    time.Duration
-	RequestTimeout  time.Duration
-	MaxOraciones    int
-	EnableCORS      bool
-	EnableRateLimit bool
-}
-
 // NewConfig crea una nueva configuración con valores por defecto
-func NewConfig() *Config {
-	return &Config{
+func NewConfig() *models.Config {
+	return &models.Config{
 		Port:            "8080",
 		StaticDir:       "static",
 		TemplatesDir:    "templates",
@@ -50,7 +37,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Configurar el handler de oraciones
-	validadorConfig := handlers.NewValidadorConfig()
+	validadorConfig := models.NewValidadorConfig()
 	validadorConfig.MaxOraciones = config.MaxOraciones
 
 	oracionHandler, err := handlers.NewOracionHandler(validadorConfig, logger)

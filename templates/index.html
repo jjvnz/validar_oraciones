@@ -69,9 +69,9 @@
                         <div class="transform transition-all duration-300 hover:scale-[1.02] p-4 rounded-lg shadow-sm {{if not $oracion.EsValida}}bg-gradient-to-r from-red-50 to-pink-50{{else}}bg-gradient-to-r from-green-50 to-emerald-50{{end}}">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-2">
-                                    <p class="text-gray-800 font-medium">{{$oracion.Oracion}}</p>
+                                    <p class="text-gray-800 font-medium">{{html $oracion.Oracion}}</p>
                                     <p class="text-sm {{if not $oracion.EsValida}}text-red-600{{else}}text-green-600{{end}}">
-                                        {{if not $oracion.EsValida}}No válida: {{ $oracion.Mensaje }}{{else}}Válida{{end}}
+                                        {{if not $oracion.EsValida}}No válida: {{ html $oracion.Mensaje }}{{else}}Válida{{end}}
                                     </p>
                                 </div>
                                 <span class="ml-4 px-3 py-1 rounded-full text-sm font-medium {{if not $oracion.EsValida}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{end}}">
@@ -81,9 +81,34 @@
                         </div>
                     {{end}}
                 </div>
-                <p>Total de oraciones: {{.TotalOraciones}}</p>
-                <p>Oraciones válidas: {{.OracionesValidas}}</p>
-                <p>Porcentaje de éxito: {{.Estadisticas.PorcentajeExito}}%</p>
+                <div class="p-4 bg-gray-100 rounded-lg shadow-md max-w-sm mx-auto space-y-4">
+                  <div>
+                      <p class="text-lg font-semibold text-gray-700">
+                          Total de oraciones: <span class="text-blue-600">{{.TotalOraciones}}</span>
+                      </p>
+                      <div class="w-full bg-blue-200 rounded-full h-2 mt-1">
+                          <div class="bg-blue-600 h-2 rounded-full {{ if .TotalOraciones }}w-{{ .TotalOraciones }}%{{ else }}w-0{{ end }}"></div>
+                      </div>
+                  </div>
+              
+                  <div>
+                      <p class="text-lg font-semibold text-gray-700">
+                          Oraciones válidas: <span class="text-green-600">{{.OracionesValidas}}</span>
+                      </p>
+                      <div class="w-full bg-green-200 rounded-full h-2 mt-1">
+                          <div class="bg-green-600 h-2 rounded-full {{ if .OracionesValidas }}w-{{ .OracionesValidas }}%{{ else }}w-0{{ end }}"></div>
+                      </div>
+                  </div>
+              
+                  <div>
+                      <p class="text-lg font-semibold text-gray-700">
+                          Porcentaje de éxito: <span class="text-purple-600">{{.Estadisticas.PorcentajeExito}}%</span>
+                      </p>
+                      <div class="w-full bg-purple-200 rounded-full h-2 mt-1">
+                          <div class="bg-purple-600 h-2 rounded-full {{ if .Estadisticas.PorcentajeExito }}w-{{ .Estadisticas.PorcentajeExito }}%{{ else }}w-0{{ end }}"></div>
+                      </div>
+                  </div>
+              </div>              
             </div>
         {{end}}
 
@@ -93,7 +118,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: '{{.ErrorMessage}}',
+                    text: '{{html .ErrorMessage}}',
                     confirmButtonColor: '#4F46E5'
                 });
             </script>

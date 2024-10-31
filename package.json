@@ -1,7 +1,7 @@
-{ 
+{
   "scripts": {
-  "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify"
-},
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify"
+  },
   "devDependencies": {
     "tailwindcss": "^3.4.14"
   }
