@@ -1,5 +1,3 @@
----
-
 ## Documentación del Proyecto de Validación de Oraciones
 
 ### Descripción del Proyecto
