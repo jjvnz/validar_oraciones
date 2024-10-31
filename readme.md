@@ -1,3 +1,5 @@
+---
+
 ## Documentación del Proyecto de Validación de Oraciones
 
 ### Descripción del Proyecto
@@ -39,11 +41,39 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 ### Ejemplo de Oraciones
 
 ```plaintext
-He plays soccer every weekend.
-They went to the park yesterday.
-I am learning Go programming.
-She likes music a lot.
-We saw a beautiful sunset.
+I am playing a game
 ```
 
 ---
+
+### Construcción y Ejecución con Docker
+
+Para construir y ejecutar el proyecto utilizando Docker, sigue estos pasos:
+
+#### Requisitos Previos
+
+Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu sistema.
+
+#### Construcción de la Imagen Docker
+
+1. En la raíz del proyecto, crea una imagen Docker utilizando el siguiente comando:
+
+   ```bash
+   docker build -t validar_oraciones .
+   ```
+
+   Esto crea una imagen llamada `validar_oraciones` basada en el `Dockerfile` presente en el directorio.
+
+#### Ejecución del Contenedor Docker
+
+2. Una vez que la imagen se ha construido con éxito, puedes ejecutar el contenedor con el siguiente comando:
+
+   ```bash
+   docker run -d -p 8080:8080 validar_oraciones
+   ```
+
+   - `-d`: Ejecuta el contenedor en segundo plano (modo "detached").
+   - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
+
+3. Abre tu navegador y ve a `http://localhost:8080`.
+
