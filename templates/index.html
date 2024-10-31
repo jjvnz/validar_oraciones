@@ -61,26 +61,29 @@
         </form>
 
         <!-- Results -->
-        {{if .Resultados}}
+        {{if .ShowResults}}
             <div class="space-y-4">
                 <h2 class="text-2xl font-semibold text-gray-800">Resultados del Análisis</h2>
                 <div class="grid gap-4">
                     {{range $index, $oracion := .Oraciones}}
-                        <div class="transform transition-all duration-300 hover:scale-[1.02] p-4 rounded-lg shadow-sm {{if eq (index $.Resultados $index) "No válida."}}bg-gradient-to-r from-red-50 to-pink-50{{else}}bg-gradient-to-r from-green-50 to-emerald-50{{end}}">
+                        <div class="transform transition-all duration-300 hover:scale-[1.02] p-4 rounded-lg shadow-sm {{if not $oracion.EsValida}}bg-gradient-to-r from-red-50 to-pink-50{{else}}bg-gradient-to-r from-green-50 to-emerald-50{{end}}">
                             <div class="flex justify-between items-start">
                                 <div class="space-y-2">
-                                    <p class="text-gray-800 font-medium">{{$oracion}}</p>
-                                    <p class="text-sm {{if eq (index $.Resultados $index) "No válida."}}text-red-600{{else}}text-green-600{{end}}">
-                                        {{index $.Resultados $index}}
+                                    <p class="text-gray-800 font-medium">{{$oracion.Oracion}}</p>
+                                    <p class="text-sm {{if not $oracion.EsValida}}text-red-600{{else}}text-green-600{{end}}">
+                                        {{if not $oracion.EsValida}}No válida: {{ $oracion.Mensaje }}{{else}}Válida{{end}}
                                     </p>
                                 </div>
-                                <span class="ml-4 px-3 py-1 rounded-full text-sm font-medium {{if eq (index $.Resultados $index) "No válida."}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{end}}">
-                                    {{if eq (index $.Resultados $index) "No válida."}}✗ Inválida{{else}}✓ Válida{{end}}
+                                <span class="ml-4 px-3 py-1 rounded-full text-sm font-medium {{if not $oracion.EsValida}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{end}}">
+                                    {{if not $oracion.EsValida}}✗ Inválida{{else}}✓ Válida{{end}}
                                 </span>
                             </div>
                         </div>
                     {{end}}
                 </div>
+                <p>Total de oraciones: {{.TotalOraciones}}</p>
+                <p>Oraciones válidas: {{.OracionesValidas}}</p>
+                <p>Porcentaje de éxito: {{.Estadisticas.PorcentajeExito}}%</p>
             </div>
         {{end}}
 
@@ -97,7 +100,7 @@
         {{end}}
 
         <!-- Success Message -->
-        {{if .AnyValid}}
+        {{if .OracionesValidas}}
             <script>
                 Swal.fire({
                     icon: 'success',

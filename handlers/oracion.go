@@ -116,7 +116,7 @@ func (h *OracionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleGet maneja las solicitudes GET
-func (h *OracionHandler) handleGet(w http.ResponseWriter, r *http.Request) {
+func (h *OracionHandler) handleGet(w http.ResponseWriter, _ *http.Request) {
 	vars := PageVariables{
 		ShowResults: false,
 	}

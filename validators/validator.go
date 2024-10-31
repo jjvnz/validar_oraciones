@@ -36,9 +36,8 @@ const (
 
 // Automata representa el autómata finito
 type Automata struct {
-	estado        int
-	tiempoVerbal  string
-	ultimoPalabra string
+	estado       int
+	tiempoVerbal string
 }
 
 // NewAutomata crea una nueva instancia del autómata
@@ -81,12 +80,16 @@ func clasificarPalabra(palabra string) TiposPalabra {
 		"like": true, "likes": true, "liked": true,
 		"see": true, "sees": true, "saw": true,
 		"know": true, "knows": true, "knew": true,
+		"visit": true, "visited": true, "visits": true,
+		"buy": true, "bought": true,
+		"walk": true, "walked": true,
 	}
 
 	// Verbos en forma progresiva
 	verbosProgresivos := map[string]bool{
 		"playing": true, "eating": true, "going": true,
 		"liking": true, "seeing": true, "knowing": true,
+		"reading": true, "watching": true,
 	}
 
 	// Adjetivos
@@ -100,6 +103,8 @@ func clasificarPalabra(palabra string) TiposPalabra {
 		"book": true, "books": true, "food": true, "game": true,
 		"games": true, "music": true, "movie": true, "movies": true,
 		"house": true, "car": true, "dog": true, "cat": true,
+		"school": true, "grandparents": true, "store": true,
+		"friends": true, "soccer": true,
 	}
 
 	// Verificar tipo de palabra
@@ -123,6 +128,7 @@ func clasificarPalabra(palabra string) TiposPalabra {
 }
 
 // Transicionar realiza la transición del autómata según la palabra de entrada
+// Transicionar realiza la transición del autómata según la palabra de entrada
 func (a *Automata) Transicionar(palabra string) bool {
 	tipoPalabra := clasificarPalabra(palabra)
 
@@ -138,7 +144,7 @@ func (a *Automata) Transicionar(palabra string) bool {
 		case TipoVerboAuxiliar:
 			a.estado = EstadoVerboAuxiliar
 			return true
-		case TipoVerboSimple:
+		case TipoVerboSimple, TipoVerboProgresivo:
 			a.estado = EstadoVerboSimple
 			return true
 		}
@@ -182,12 +188,9 @@ func (a *Automata) Transicionar(palabra string) bool {
 		}
 
 	case EstadoComplemento:
-		if tipoPalabra == TipoPreposicion {
-			a.estado = EstadoPreposicion
-			return true
-		}
+		// Ahora verificamos que, tras un complemento, siempre pasamos al estado final.
 		a.estado = EstadoFinal
-		return true
+		return true // Aceptar que ha terminado la oración
 
 	case EstadoPreposicion:
 		switch tipoPalabra {
@@ -214,6 +217,7 @@ func ValidarOracion(oracion string) (string, string) {
 		}
 	}
 
+	// Aceptamos la oración si el autómata termina en EstadoFinal o EstadoComplemento
 	if a.estado == EstadoFinal || a.estado == EstadoComplemento {
 		return "Válida", "La oración cumple con la estructura gramatical"
 	}
