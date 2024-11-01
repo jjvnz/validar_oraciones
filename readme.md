@@ -39,7 +39,9 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 ### Ejemplo de Oraciones
 
 ```plaintext
-I am playing a game
+I was in Japan last year.
+She had a headache yesterday.
+We did our homework last night.
 ```
 
 ---

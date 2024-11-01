@@ -3,16 +3,19 @@ package validators
 import (
 	"errors"
 	"strings"
+	"sync"
 )
 
-// Tipos de palabras
+// TipoPalabra representa el tipo de palabra usando un tipo byte para optimizar memoria
 type TipoPalabra uint8
 
 const (
 	TipoDesconocido TipoPalabra = iota
 	TipoSujeto
 	TipoVerboSimple
+	TipoVerboAuxiliar
 	TipoComplemento
+	TipoTiempo // Para palabras que indican tiempo como "yesterday", "last year", etc.
 )
 
 // Palabra representa una palabra con su tipo
@@ -27,152 +30,79 @@ type Token struct {
 	Texto string
 }
 
+// diccionario es un singleton thread-safe para el mapa de palabras
+var (
+	diccionario map[string]TipoPalabra
+	once        sync.Once
+)
+
+// inicializarDiccionario crea el mapa de palabras una sola vez
+func inicializarDiccionario() {
+	once.Do(func() {
+		diccionario = make(map[string]TipoPalabra, 200) // Aumentada la capacidad inicial
+
+		// Agregar palabras por categorías
+		agregarPalabras([]string{
+			"i", "you", "he", "she", "it", "we", "they",
+			"john", "mary", "peter", "julia", "mike", "ann",
+			"the dog", "the cat", "my friend", "the teacher", "the students",
+		}, TipoSujeto)
+
+		// Verbos auxiliares y to be en pasado
+		agregarPalabras([]string{
+			"was", "were", "had", "did", "could", "would", "should",
+			"might", "must", "shall", "will", "can", "may",
+		}, TipoVerboAuxiliar)
+
+		// Verbos en pasado simple (mantenemos los anteriores y añadimos más comunes)
+		agregarPalabras([]string{
+			"played", "visited", "walked", "talked", "worked", "studied",
+			"watched", "listened", "ate", "went", "saw", "bought", "made",
+			"read", "cleaned", "called", "finished", "liked", "traveled",
+			"wrote", "spoke", "ran", "swam", "drank", "gave", "took", "flew",
+			"thought", "came", "found", "felt", "broke", "chose", "held",
+			"left", "taught", "built", "sent", "met", "lost", "said", "slept",
+			"understood", "wore", "kept", "grew", "threw", "gained", "began",
+			"ended", "arrived", "departed", "founded", "proved", "remained",
+			"attended", "celebrated", "enjoyed", "helped", "created", "improved",
+			"discussed", "explained", "described", "answered", "continued", "researched",
+			"been", "gone", "done", "had", "made", "gotten", "become",
+		}, TipoVerboSimple)
+
+		// Complementos (lugares, objetos, etc.)
+		agregarPalabras([]string{
+			"football", "music", "movie", "book", "school", "home", "park",
+			"store", "homework", "food", "game", "tv", "party", "meeting",
+			"friend", "family", "house", "garden", "city", "beach", "restaurant",
+			"concert", "trip", "vacation", "project", "presentation", "exercise",
+			"lesson", "activity", "event", "test", "competition", "adventure",
+			"challenge", "celebration", "gathering", "ceremony", "discussion",
+			"session", "assignment", "work", "research", "field", "tour",
+			"exploration", "training", "seminar", "japan", "headache",
+		}, TipoComplemento)
+
+		// Expresiones de tiempo
+		agregarPalabras([]string{
+			"yesterday", "today", "tomorrow", "last night", "last week",
+			"last month", "last year", "ago", "before", "after",
+			"in the morning", "in the afternoon", "in the evening",
+		}, TipoTiempo)
+	})
+}
+
+// agregarPalabras es una función auxiliar para agregar palabras al diccionario
+func agregarPalabras(palabras []string, tipo TipoPalabra) {
+	for _, palabra := range palabras {
+		diccionario[palabra] = tipo
+	}
+}
+
 // ClasificarPalabra determina el tipo de una palabra
 func ClasificarPalabra(palabra string) Palabra {
+	inicializarDiccionario()
 	palabra = strings.ToLower(strings.TrimSpace(palabra))
 
-	// Mapa de palabras por tipo
-	palabrasPorTipo := map[string]TipoPalabra{
-		// Sujetos
-		"i":            TipoSujeto,
-		"you":          TipoSujeto,
-		"he":           TipoSujeto,
-		"she":          TipoSujeto,
-		"it":           TipoSujeto,
-		"we":           TipoSujeto,
-		"they":         TipoSujeto,
-		"john":         TipoSujeto,
-		"mary":         TipoSujeto,
-		"peter":        TipoSujeto,
-		"julia":        TipoSujeto,
-		"mike":         TipoSujeto,
-		"ann":          TipoSujeto,
-		"the dog":      TipoSujeto,
-		"the cat":      TipoSujeto,
-		"my friend":    TipoSujeto,
-		"the teacher":  TipoSujeto,
-		"the students": TipoSujeto,
-
-		// Verbos en pasado simple
-		"played":     TipoVerboSimple,
-		"visited":    TipoVerboSimple,
-		"walked":     TipoVerboSimple,
-		"talked":     TipoVerboSimple,
-		"worked":     TipoVerboSimple,
-		"studied":    TipoVerboSimple,
-		"watched":    TipoVerboSimple,
-		"listened":   TipoVerboSimple,
-		"ate":        TipoVerboSimple,
-		"went":       TipoVerboSimple,
-		"saw":        TipoVerboSimple,
-		"bought":     TipoVerboSimple,
-		"made":       TipoVerboSimple,
-		"read":       TipoVerboSimple,
-		"cleaned":    TipoVerboSimple,
-		"called":     TipoVerboSimple,
-		"finished":   TipoVerboSimple,
-		"liked":      TipoVerboSimple,
-		"traveled":   TipoVerboSimple,
-		"wrote":      TipoVerboSimple,
-		"spoke":      TipoVerboSimple,
-		"ran":        TipoVerboSimple,
-		"swam":       TipoVerboSimple,
-		"drank":      TipoVerboSimple,
-		"gave":       TipoVerboSimple,
-		"took":       TipoVerboSimple,
-		"flew":       TipoVerboSimple,
-		"thought":    TipoVerboSimple,
-		"came":       TipoVerboSimple,
-		"found":      TipoVerboSimple,
-		"felt":       TipoVerboSimple,
-		"broke":      TipoVerboSimple,
-		"chose":      TipoVerboSimple,
-		"held":       TipoVerboSimple,
-		"left":       TipoVerboSimple,
-		"taught":     TipoVerboSimple,
-		"built":      TipoVerboSimple,
-		"sent":       TipoVerboSimple,
-		"met":        TipoVerboSimple,
-		"lost":       TipoVerboSimple,
-		"said":       TipoVerboSimple,
-		"slept":      TipoVerboSimple,
-		"understood": TipoVerboSimple,
-		"wore":       TipoVerboSimple,
-		"kept":       TipoVerboSimple,
-		"grew":       TipoVerboSimple,
-		"threw":      TipoVerboSimple,
-		"gained":     TipoVerboSimple,
-		"began":      TipoVerboSimple,
-		"ended":      TipoVerboSimple,
-		"arrived":    TipoVerboSimple,
-		"departed":   TipoVerboSimple,
-		"founded":    TipoVerboSimple,
-		"proved":     TipoVerboSimple,
-		"remained":   TipoVerboSimple,
-		"attended":   TipoVerboSimple,
-		"celebrated": TipoVerboSimple,
-		"enjoyed":    TipoVerboSimple,
-		"helped":     TipoVerboSimple,
-		"created":    TipoVerboSimple,
-		"improved":   TipoVerboSimple,
-		"discussed":  TipoVerboSimple,
-		"explained":  TipoVerboSimple,
-		"described":  TipoVerboSimple,
-		"answered":   TipoVerboSimple,
-		"continued":  TipoVerboSimple,
-		"researched": TipoVerboSimple,
-
-		// Complementos
-		"football":     TipoComplemento,
-		"music":        TipoComplemento,
-		"movie":        TipoComplemento,
-		"book":         TipoComplemento,
-		"school":       TipoComplemento,
-		"home":         TipoComplemento,
-		"park":         TipoComplemento,
-		"store":        TipoComplemento,
-		"homework":     TipoComplemento,
-		"food":         TipoComplemento,
-		"game":         TipoComplemento,
-		"tv":           TipoComplemento,
-		"party":        TipoComplemento,
-		"meeting":      TipoComplemento,
-		"friend":       TipoComplemento,
-		"family":       TipoComplemento,
-		"house":        TipoComplemento,
-		"garden":       TipoComplemento,
-		"city":         TipoComplemento,
-		"beach":        TipoComplemento,
-		"restaurant":   TipoComplemento,
-		"concert":      TipoComplemento,
-		"trip":         TipoComplemento,
-		"vacation":     TipoComplemento,
-		"project":      TipoComplemento,
-		"presentation": TipoComplemento,
-		"exercise":     TipoComplemento,
-		"lesson":       TipoComplemento,
-		"activity":     TipoComplemento,
-		"event":        TipoComplemento,
-		"test":         TipoComplemento,
-		"competition":  TipoComplemento,
-		"adventure":    TipoComplemento,
-		"challenge":    TipoComplemento,
-		"celebration":  TipoComplemento,
-		"gathering":    TipoComplemento,
-		"ceremony":     TipoComplemento,
-		"discussion":   TipoComplemento,
-		"session":      TipoComplemento,
-		"assignment":   TipoComplemento,
-		"work":         TipoComplemento,
-		"research":     TipoComplemento,
-		"field":        TipoComplemento,
-		"tour":         TipoComplemento,
-		"exploration":  TipoComplemento,
-		"training":     TipoComplemento,
-		"seminar":      TipoComplemento,
-	}
-
-	if tipo, existe := palabrasPorTipo[palabra]; existe {
+	if tipo, existe := diccionario[palabra]; existe {
 		return Palabra{tipo, palabra}
 	}
 	return Palabra{TipoDesconocido, palabra}
@@ -184,8 +114,8 @@ func AnalizarLexico(oracion string) ([]Token, error) {
 		return nil, errors.New("la oración está vacía")
 	}
 
-	var tokens []Token
 	palabras := strings.Fields(oracion)
+	tokens := make([]Token, 0, len(palabras))
 
 	for _, palabra := range palabras {
 		p := ClasificarPalabra(palabra)
@@ -201,15 +131,21 @@ func ValidarTokens(tokens []Token) (string, string) {
 		return "Inválida", "No se encontraron tokens."
 	}
 
-	// Validación de estructura: al menos un sujeto y un verbo
-	tieneSujeto := false
-	tieneVerbo := false
+	var (
+		tieneSujeto bool
+		tieneVerbo  bool // Ahora considera tanto verbos simples como auxiliares
+	)
 
 	for _, token := range tokens {
-		if token.Tipo == TipoSujeto {
+		switch token.Tipo {
+		case TipoSujeto:
 			tieneSujeto = true
-		} else if token.Tipo == TipoVerboSimple {
+		case TipoVerboSimple, TipoVerboAuxiliar: // Considera ambos tipos de verbos
 			tieneVerbo = true
+		}
+
+		if tieneSujeto && tieneVerbo {
+			break
 		}
 	}
 
