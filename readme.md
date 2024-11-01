@@ -3,6 +3,7 @@
 ### Descripción del Proyecto
 
 Este proyecto implementa un servidor web en **Go** para la validación de oraciones en inglés. Utiliza un autómata independiente de contexto que analiza la estructura gramatical de cada oración para determinar si es válida en:
+
 - **Presente Simple**
 - **Pasado Simple**
 - **Uso del verbo "To Be"**
@@ -18,12 +19,14 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 ### Instalación
 
 1. Clona el repositorio:
+
    ```bash
    git clone https://github.com/jjvnz/validar_oraciones.git
    cd validar_oraciones
    ```
 
 2. Ejecuta el proyecto:
+
    ```bash
    go run main.go
    ```
@@ -62,6 +65,10 @@ Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu
    docker build -t validar_oraciones .
    ```
 
+   ```bash
+   sudo docker build --no-cache -t validar_oraciones .
+   ```
+
    Esto crea una imagen llamada `validar_oraciones` basada en el `Dockerfile` presente en el directorio.
 
 #### Ejecución del Contenedor Docker
@@ -76,4 +83,3 @@ Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu
    - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
 
 3. Abre tu navegador y ve a `http://localhost:8080`.
-
