@@ -1,180 +1,221 @@
 package validators
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
-// Estados del autómata
-const (
-	EstadoInicio = iota
-	EstadoSujeto
-	EstadoVerboAuxiliar
-	EstadoVerboProgresivo
-	EstadoVerboSimple
-	EstadoArticulo
-	EstadoAdjetivo
-	EstadoComplemento
-	EstadoPreposicion
-	EstadoFinal
-)
-
-// TiposPalabra define los posibles tipos de palabras
-type TiposPalabra uint8
+// Tipos de palabras
+type TipoPalabra uint8
 
 const (
-	TipoDesconocido TiposPalabra = iota
+	TipoDesconocido TipoPalabra = iota
 	TipoSujeto
-	TipoVerboAuxiliar
-	TipoVerboProgresivo
 	TipoVerboSimple
-	TipoArticulo
-	TipoAdjetivo
 	TipoComplemento
-	TipoPreposicion
 )
 
-// Automata representa el autómata finito
-type Automata struct {
-	estado       int
-	tiempoVerbal string
+// Palabra representa una palabra con su tipo
+type Palabra struct {
+	Tipo  TipoPalabra
+	Texto string
 }
 
-// NewAutomata crea una nueva instancia del autómata
-func NewAutomata() *Automata {
-	return &Automata{
-		estado:       EstadoInicio,
-		tiempoVerbal: "presente",
-	}
+// Token representa un token de entrada
+type Token struct {
+	Tipo  TipoPalabra
+	Texto string
 }
 
-// clasificarPalabra determina el tipo de una palabra
-func clasificarPalabra(palabra string) TiposPalabra {
+// ClasificarPalabra determina el tipo de una palabra
+func ClasificarPalabra(palabra string) Palabra {
 	palabra = strings.ToLower(strings.TrimSpace(palabra))
 
-	palabrasPorTipo := map[string]TiposPalabra{
+	// Mapa de palabras por tipo
+	palabrasPorTipo := map[string]TipoPalabra{
 		// Sujetos
-		"i": TipoSujeto, "you": TipoSujeto, "he": TipoSujeto, "she": TipoSujeto,
-		"it": TipoSujeto, "we": TipoSujeto, "they": TipoSujeto,
+		"i":            TipoSujeto,
+		"you":          TipoSujeto,
+		"he":           TipoSujeto,
+		"she":          TipoSujeto,
+		"it":           TipoSujeto,
+		"we":           TipoSujeto,
+		"they":         TipoSujeto,
+		"john":         TipoSujeto,
+		"mary":         TipoSujeto,
+		"peter":        TipoSujeto,
+		"julia":        TipoSujeto,
+		"mike":         TipoSujeto,
+		"ann":          TipoSujeto,
+		"the dog":      TipoSujeto,
+		"the cat":      TipoSujeto,
+		"my friend":    TipoSujeto,
+		"the teacher":  TipoSujeto,
+		"the students": TipoSujeto,
 
-		// Verbos auxiliares
-		"am": TipoVerboAuxiliar, "is": TipoVerboAuxiliar, "are": TipoVerboAuxiliar,
-		"was": TipoVerboAuxiliar, "were": TipoVerboAuxiliar,
-		"have": TipoVerboAuxiliar, "has": TipoVerboAuxiliar, "had": TipoVerboAuxiliar,
-		"do": TipoVerboAuxiliar, "does": TipoVerboAuxiliar, "did": TipoVerboAuxiliar,
-
-		// Artículos
-		"a": TipoArticulo, "an": TipoArticulo, "the": TipoArticulo,
-
-		// Preposiciones
-		"in": TipoPreposicion, "on": TipoPreposicion, "at": TipoPreposicion,
-		"to": TipoPreposicion, "for": TipoPreposicion, "with": TipoPreposicion,
-
-		// Verbos simples
-		"play": TipoVerboSimple, "plays": TipoVerboSimple, "played": TipoVerboSimple,
-		"eat": TipoVerboSimple, "eats": TipoVerboSimple, "ate": TipoVerboSimple,
-		"go": TipoVerboSimple, "goes": TipoVerboSimple, "went": TipoVerboSimple,
-		"like": TipoVerboSimple, "likes": TipoVerboSimple, "liked": TipoVerboSimple,
-		"see": TipoVerboSimple, "sees": TipoVerboSimple, "saw": TipoVerboSimple,
-		"know": TipoVerboSimple, "knows": TipoVerboSimple, "knew": TipoVerboSimple,
-		"visit": TipoVerboSimple, "visited": TipoVerboSimple, "visits": TipoVerboSimple,
-		"buy": TipoVerboSimple, "bought": TipoVerboSimple,
-		"walk": TipoVerboSimple, "walked": TipoVerboSimple,
-
-		// Verbos progresivos
-		"playing": TipoVerboProgresivo, "eating": TipoVerboProgresivo,
-		"going": TipoVerboProgresivo, "liking": TipoVerboProgresivo,
-		"seeing": TipoVerboProgresivo, "knowing": TipoVerboProgresivo,
-		"reading": TipoVerboProgresivo, "watching": TipoVerboProgresivo,
-
-		// Adjetivos
-		"big": TipoAdjetivo, "small": TipoAdjetivo, "good": TipoAdjetivo,
-		"bad": TipoAdjetivo, "happy": TipoAdjetivo, "sad": TipoAdjetivo,
-		"new": TipoAdjetivo, "old": TipoAdjetivo,
+		// Verbos en pasado simple
+		"played":     TipoVerboSimple,
+		"visited":    TipoVerboSimple,
+		"walked":     TipoVerboSimple,
+		"talked":     TipoVerboSimple,
+		"worked":     TipoVerboSimple,
+		"studied":    TipoVerboSimple,
+		"watched":    TipoVerboSimple,
+		"listened":   TipoVerboSimple,
+		"ate":        TipoVerboSimple,
+		"went":       TipoVerboSimple,
+		"saw":        TipoVerboSimple,
+		"bought":     TipoVerboSimple,
+		"made":       TipoVerboSimple,
+		"read":       TipoVerboSimple,
+		"cleaned":    TipoVerboSimple,
+		"called":     TipoVerboSimple,
+		"finished":   TipoVerboSimple,
+		"liked":      TipoVerboSimple,
+		"traveled":   TipoVerboSimple,
+		"wrote":      TipoVerboSimple,
+		"spoke":      TipoVerboSimple,
+		"ran":        TipoVerboSimple,
+		"swam":       TipoVerboSimple,
+		"drank":      TipoVerboSimple,
+		"gave":       TipoVerboSimple,
+		"took":       TipoVerboSimple,
+		"flew":       TipoVerboSimple,
+		"thought":    TipoVerboSimple,
+		"came":       TipoVerboSimple,
+		"found":      TipoVerboSimple,
+		"felt":       TipoVerboSimple,
+		"broke":      TipoVerboSimple,
+		"chose":      TipoVerboSimple,
+		"held":       TipoVerboSimple,
+		"left":       TipoVerboSimple,
+		"taught":     TipoVerboSimple,
+		"built":      TipoVerboSimple,
+		"sent":       TipoVerboSimple,
+		"met":        TipoVerboSimple,
+		"lost":       TipoVerboSimple,
+		"said":       TipoVerboSimple,
+		"slept":      TipoVerboSimple,
+		"understood": TipoVerboSimple,
+		"wore":       TipoVerboSimple,
+		"kept":       TipoVerboSimple,
+		"grew":       TipoVerboSimple,
+		"threw":      TipoVerboSimple,
+		"gained":     TipoVerboSimple,
+		"began":      TipoVerboSimple,
+		"ended":      TipoVerboSimple,
+		"arrived":    TipoVerboSimple,
+		"departed":   TipoVerboSimple,
+		"founded":    TipoVerboSimple,
+		"proved":     TipoVerboSimple,
+		"remained":   TipoVerboSimple,
+		"attended":   TipoVerboSimple,
+		"celebrated": TipoVerboSimple,
+		"enjoyed":    TipoVerboSimple,
+		"helped":     TipoVerboSimple,
+		"created":    TipoVerboSimple,
+		"improved":   TipoVerboSimple,
+		"discussed":  TipoVerboSimple,
+		"explained":  TipoVerboSimple,
+		"described":  TipoVerboSimple,
+		"answered":   TipoVerboSimple,
+		"continued":  TipoVerboSimple,
+		"researched": TipoVerboSimple,
 
 		// Complementos
-		"book": TipoComplemento, "books": TipoComplemento, "food": TipoComplemento,
-		"game": TipoComplemento, "games": TipoComplemento, "music": TipoComplemento,
-		"movie": TipoComplemento, "movies": TipoComplemento, "house": TipoComplemento,
-		"car": TipoComplemento, "dog": TipoComplemento, "cat": TipoComplemento,
-		"school": TipoComplemento, "grandparents": TipoComplemento,
-		"store": TipoComplemento, "friends": TipoComplemento, "soccer": TipoComplemento,
+		"football":     TipoComplemento,
+		"music":        TipoComplemento,
+		"movie":        TipoComplemento,
+		"book":         TipoComplemento,
+		"school":       TipoComplemento,
+		"home":         TipoComplemento,
+		"park":         TipoComplemento,
+		"store":        TipoComplemento,
+		"homework":     TipoComplemento,
+		"food":         TipoComplemento,
+		"game":         TipoComplemento,
+		"tv":           TipoComplemento,
+		"party":        TipoComplemento,
+		"meeting":      TipoComplemento,
+		"friend":       TipoComplemento,
+		"family":       TipoComplemento,
+		"house":        TipoComplemento,
+		"garden":       TipoComplemento,
+		"city":         TipoComplemento,
+		"beach":        TipoComplemento,
+		"restaurant":   TipoComplemento,
+		"concert":      TipoComplemento,
+		"trip":         TipoComplemento,
+		"vacation":     TipoComplemento,
+		"project":      TipoComplemento,
+		"presentation": TipoComplemento,
+		"exercise":     TipoComplemento,
+		"lesson":       TipoComplemento,
+		"activity":     TipoComplemento,
+		"event":        TipoComplemento,
+		"test":         TipoComplemento,
+		"competition":  TipoComplemento,
+		"adventure":    TipoComplemento,
+		"challenge":    TipoComplemento,
+		"celebration":  TipoComplemento,
+		"gathering":    TipoComplemento,
+		"ceremony":     TipoComplemento,
+		"discussion":   TipoComplemento,
+		"session":      TipoComplemento,
+		"assignment":   TipoComplemento,
+		"work":         TipoComplemento,
+		"research":     TipoComplemento,
+		"field":        TipoComplemento,
+		"tour":         TipoComplemento,
+		"exploration":  TipoComplemento,
+		"training":     TipoComplemento,
+		"seminar":      TipoComplemento,
 	}
 
 	if tipo, existe := palabrasPorTipo[palabra]; existe {
-		return tipo
+		return Palabra{tipo, palabra}
 	}
-	return TipoDesconocido
+	return Palabra{TipoDesconocido, palabra}
 }
 
-// Transicionar realiza la transición del autómata según la palabra de entrada
-func (a *Automata) Transicionar(palabra string) bool {
-	tipoPalabra := clasificarPalabra(palabra)
-
-	// Tabla de transición
-	transiciones := map[int]map[TiposPalabra]int{
-		EstadoInicio: {
-			TipoSujeto: EstadoSujeto,
-		},
-		EstadoSujeto: {
-			TipoVerboAuxiliar:   EstadoVerboAuxiliar,
-			TipoVerboSimple:     EstadoVerboSimple,
-			TipoVerboProgresivo: EstadoVerboSimple,
-		},
-		EstadoVerboAuxiliar: {
-			TipoVerboProgresivo: EstadoVerboProgresivo,
-		},
-		EstadoVerboProgresivo: {
-			TipoArticulo:    EstadoArticulo,
-			TipoAdjetivo:    EstadoAdjetivo,
-			TipoComplemento: EstadoComplemento,
-			TipoPreposicion: EstadoPreposicion,
-		},
-		EstadoVerboSimple: {
-			TipoArticulo:    EstadoArticulo,
-			TipoAdjetivo:    EstadoAdjetivo,
-			TipoComplemento: EstadoComplemento,
-			TipoPreposicion: EstadoPreposicion,
-		},
-		EstadoArticulo: {
-			TipoAdjetivo:    EstadoAdjetivo,
-			TipoComplemento: EstadoComplemento,
-		},
-		EstadoAdjetivo: {
-			TipoComplemento: EstadoComplemento,
-		},
-		EstadoComplemento: {
-			// No hay transiciones desde el estado final
-		},
-		EstadoPreposicion: {
-			TipoArticulo:    EstadoArticulo,
-			TipoComplemento: EstadoComplemento,
-		},
+// AnalizarLexico recibe una oración y devuelve una lista de tokens
+func AnalizarLexico(oracion string) ([]Token, error) {
+	if oracion == "" {
+		return nil, errors.New("la oración está vacía")
 	}
 
-	if nuevaEstado, existe := transiciones[a.estado][tipoPalabra]; existe {
-		a.estado = nuevaEstado
-		return true
-	}
-
-	return false
-}
-
-// ValidarOracion valida una oración completa
-func ValidarOracion(oracion string) (string, string) {
-	a := NewAutomata()
+	var tokens []Token
 	palabras := strings.Fields(oracion)
 
 	for _, palabra := range palabras {
-		if !a.Transicionar(palabra) {
-			return "No válida", fmt.Sprintf("Error en la palabra: %s", palabra)
+		p := ClasificarPalabra(palabra)
+		tokens = append(tokens, Token{p.Tipo, p.Texto})
+	}
+
+	return tokens, nil
+}
+
+// ValidarTokens valida los tokens generados a partir de la oración
+func ValidarTokens(tokens []Token) (string, string) {
+	if len(tokens) == 0 {
+		return "Inválida", "No se encontraron tokens."
+	}
+
+	// Validación de estructura: al menos un sujeto y un verbo
+	tieneSujeto := false
+	tieneVerbo := false
+
+	for _, token := range tokens {
+		if token.Tipo == TipoSujeto {
+			tieneSujeto = true
+		} else if token.Tipo == TipoVerboSimple {
+			tieneVerbo = true
 		}
 	}
 
-	// Aceptamos la oración si el autómata termina en EstadoFinal o EstadoComplemento
-	if a.estado == EstadoFinal || a.estado == EstadoComplemento {
-		return "Válida", "La oración cumple con la estructura gramatical"
+	if tieneSujeto && tieneVerbo {
+		return "Válida", "La oración tiene una estructura válida."
 	}
 
-	return "No válida", "La oración está incompleta"
+	return "Inválida", "La oración debe contener al menos un sujeto y un verbo."
 }
