@@ -1,222 +1,157 @@
 package validators
 
 import (
-	"fmt"
+	"errors"
 	"strings"
+	"sync"
 )
 
-// Estados del autómata
-const (
-	EstadoInicio = iota
-	EstadoSujeto
-	EstadoVerboAuxiliar
-	EstadoVerboProgresivo
-	EstadoVerboSimple
-	EstadoArticulo
-	EstadoAdjetivo
-	EstadoComplemento
-	EstadoPreposicion
-	EstadoFinal
-)
-
-// TiposPalabra define los posibles tipos de palabras
-type TiposPalabra uint8
+// TipoPalabra representa el tipo de palabra usando un tipo byte para optimizar memoria
+type TipoPalabra uint8
 
 const (
-	TipoDesconocido TiposPalabra = iota
+	TipoDesconocido TipoPalabra = iota
 	TipoSujeto
-	TipoVerboAuxiliar
-	TipoVerboProgresivo
 	TipoVerboSimple
-	TipoArticulo
-	TipoAdjetivo
+	TipoVerboAuxiliar
 	TipoComplemento
-	TipoPreposicion
+	TipoTiempo // Para palabras que indican tiempo como "yesterday", "last year", etc.
 )
 
-// Automata representa el autómata finito
-type Automata struct {
-	estado        int
-	tiempoVerbal  string
-	ultimoPalabra string
+// Palabra representa una palabra con su tipo
+type Palabra struct {
+	Tipo  TipoPalabra
+	Texto string
 }
 
-// NewAutomata crea una nueva instancia del autómata
-func NewAutomata() *Automata {
-	return &Automata{
-		estado:       EstadoInicio,
-		tiempoVerbal: "presente",
+// Token representa un token de entrada
+type Token struct {
+	Tipo  TipoPalabra
+	Texto string
+}
+
+// diccionario es un singleton thread-safe para el mapa de palabras
+var (
+	diccionario map[string]TipoPalabra
+	once        sync.Once
+)
+
+// inicializarDiccionario crea el mapa de palabras una sola vez
+func inicializarDiccionario() {
+	once.Do(func() {
+		diccionario = make(map[string]TipoPalabra, 200) // Aumentada la capacidad inicial
+
+		// Agregar palabras por categorías
+		agregarPalabras([]string{
+			"i", "you", "he", "she", "it", "we", "they",
+			"john", "mary", "peter", "julia", "mike", "ann",
+			"the dog", "the cat", "my friend", "the teacher", "the students",
+		}, TipoSujeto)
+
+		// Verbos auxiliares y to be en pasado
+		agregarPalabras([]string{
+			"was", "were", "had", "did", "could", "would", "should",
+			"might", "must", "shall", "will", "can", "may",
+		}, TipoVerboAuxiliar)
+
+		// Verbos en pasado simple (mantenemos los anteriores y añadimos más comunes)
+		agregarPalabras([]string{
+			"played", "visited", "walked", "talked", "worked", "studied",
+			"watched", "listened", "ate", "went", "saw", "bought", "made",
+			"read", "cleaned", "called", "finished", "liked", "traveled",
+			"wrote", "spoke", "ran", "swam", "drank", "gave", "took", "flew",
+			"thought", "came", "found", "felt", "broke", "chose", "held",
+			"left", "taught", "built", "sent", "met", "lost", "said", "slept",
+			"understood", "wore", "kept", "grew", "threw", "gained", "began",
+			"ended", "arrived", "departed", "founded", "proved", "remained",
+			"attended", "celebrated", "enjoyed", "helped", "created", "improved",
+			"discussed", "explained", "described", "answered", "continued", "researched",
+			"been", "gone", "done", "had", "made", "gotten", "become",
+		}, TipoVerboSimple)
+
+		// Complementos (lugares, objetos, etc.)
+		agregarPalabras([]string{
+			"football", "music", "movie", "book", "school", "home", "park",
+			"store", "homework", "food", "game", "tv", "party", "meeting",
+			"friend", "family", "house", "garden", "city", "beach", "restaurant",
+			"concert", "trip", "vacation", "project", "presentation", "exercise",
+			"lesson", "activity", "event", "test", "competition", "adventure",
+			"challenge", "celebration", "gathering", "ceremony", "discussion",
+			"session", "assignment", "work", "research", "field", "tour",
+			"exploration", "training", "seminar", "japan", "headache",
+		}, TipoComplemento)
+
+		// Expresiones de tiempo
+		agregarPalabras([]string{
+			"yesterday", "today", "tomorrow", "last night", "last week",
+			"last month", "last year", "ago", "before", "after",
+			"in the morning", "in the afternoon", "in the evening",
+		}, TipoTiempo)
+	})
+}
+
+// agregarPalabras es una función auxiliar para agregar palabras al diccionario
+func agregarPalabras(palabras []string, tipo TipoPalabra) {
+	for _, palabra := range palabras {
+		diccionario[palabra] = tipo
 	}
 }
 
-// clasificarPalabra determina el tipo de una palabra
-func clasificarPalabra(palabra string) TiposPalabra {
+// ClasificarPalabra determina el tipo de una palabra
+func ClasificarPalabra(palabra string) Palabra {
+	inicializarDiccionario()
 	palabra = strings.ToLower(strings.TrimSpace(palabra))
 
-	// Mapas de palabras válidas por tipo
-	palabrasPorTipo := map[string]TiposPalabra{
-		// Sujetos
-		"i": TipoSujeto, "you": TipoSujeto, "he": TipoSujeto, "she": TipoSujeto,
-		"it": TipoSujeto, "we": TipoSujeto, "they": TipoSujeto,
-
-		// Verbos auxiliares
-		"am": TipoVerboAuxiliar, "is": TipoVerboAuxiliar, "are": TipoVerboAuxiliar,
-		"was": TipoVerboAuxiliar, "were": TipoVerboAuxiliar,
-		"have": TipoVerboAuxiliar, "has": TipoVerboAuxiliar, "had": TipoVerboAuxiliar,
-		"do": TipoVerboAuxiliar, "does": TipoVerboAuxiliar, "did": TipoVerboAuxiliar,
-
-		// Artículos
-		"a": TipoArticulo, "an": TipoArticulo, "the": TipoArticulo,
-
-		// Preposiciones
-		"in": TipoPreposicion, "on": TipoPreposicion, "at": TipoPreposicion,
-		"to": TipoPreposicion, "for": TipoPreposicion, "with": TipoPreposicion,
+	if tipo, existe := diccionario[palabra]; existe {
+		return Palabra{tipo, palabra}
 	}
-
-	// Verbos en forma simple
-	verbosSimples := map[string]bool{
-		"play": true, "plays": true, "played": true,
-		"eat": true, "eats": true, "ate": true,
-		"go": true, "goes": true, "went": true,
-		"like": true, "likes": true, "liked": true,
-		"see": true, "sees": true, "saw": true,
-		"know": true, "knows": true, "knew": true,
-	}
-
-	// Verbos en forma progresiva
-	verbosProgresivos := map[string]bool{
-		"playing": true, "eating": true, "going": true,
-		"liking": true, "seeing": true, "knowing": true,
-	}
-
-	// Adjetivos
-	adjetivos := map[string]bool{
-		"big": true, "small": true, "good": true, "bad": true,
-		"happy": true, "sad": true, "new": true, "old": true,
-	}
-
-	// Complementos
-	complementos := map[string]bool{
-		"book": true, "books": true, "food": true, "game": true,
-		"games": true, "music": true, "movie": true, "movies": true,
-		"house": true, "car": true, "dog": true, "cat": true,
-	}
-
-	// Verificar tipo de palabra
-	if tipo, existe := palabrasPorTipo[palabra]; existe {
-		return tipo
-	}
-	if verbosSimples[palabra] {
-		return TipoVerboSimple
-	}
-	if verbosProgresivos[palabra] {
-		return TipoVerboProgresivo
-	}
-	if adjetivos[palabra] {
-		return TipoAdjetivo
-	}
-	if complementos[palabra] {
-		return TipoComplemento
-	}
-
-	return TipoDesconocido
+	return Palabra{TipoDesconocido, palabra}
 }
 
-// Transicionar realiza la transición del autómata según la palabra de entrada
-func (a *Automata) Transicionar(palabra string) bool {
-	tipoPalabra := clasificarPalabra(palabra)
-
-	switch a.estado {
-	case EstadoInicio:
-		if tipoPalabra == TipoSujeto {
-			a.estado = EstadoSujeto
-			return true
-		}
-
-	case EstadoSujeto:
-		switch tipoPalabra {
-		case TipoVerboAuxiliar:
-			a.estado = EstadoVerboAuxiliar
-			return true
-		case TipoVerboSimple:
-			a.estado = EstadoVerboSimple
-			return true
-		}
-
-	case EstadoVerboAuxiliar:
-		if tipoPalabra == TipoVerboProgresivo {
-			a.estado = EstadoVerboProgresivo
-			return true
-		}
-
-	case EstadoVerboProgresivo, EstadoVerboSimple:
-		switch tipoPalabra {
-		case TipoArticulo:
-			a.estado = EstadoArticulo
-			return true
-		case TipoAdjetivo:
-			a.estado = EstadoAdjetivo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		case TipoPreposicion:
-			a.estado = EstadoPreposicion
-			return true
-		}
-
-	case EstadoArticulo:
-		switch tipoPalabra {
-		case TipoAdjetivo:
-			a.estado = EstadoAdjetivo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		}
-
-	case EstadoAdjetivo:
-		if tipoPalabra == TipoComplemento {
-			a.estado = EstadoComplemento
-			return true
-		}
-
-	case EstadoComplemento:
-		if tipoPalabra == TipoPreposicion {
-			a.estado = EstadoPreposicion
-			return true
-		}
-		a.estado = EstadoFinal
-		return true
-
-	case EstadoPreposicion:
-		switch tipoPalabra {
-		case TipoArticulo:
-			a.estado = EstadoArticulo
-			return true
-		case TipoComplemento:
-			a.estado = EstadoComplemento
-			return true
-		}
+// AnalizarLexico recibe una oración y devuelve una lista de tokens
+func AnalizarLexico(oracion string) ([]Token, error) {
+	if oracion == "" {
+		return nil, errors.New("la oración está vacía")
 	}
 
-	return false
-}
-
-// ValidarOracion valida una oración completa
-func ValidarOracion(oracion string) (string, string) {
-	a := NewAutomata()
 	palabras := strings.Fields(oracion)
+	tokens := make([]Token, 0, len(palabras))
 
 	for _, palabra := range palabras {
-		if !a.Transicionar(palabra) {
-			return "No válida", fmt.Sprintf("Error en la palabra: %s", palabra)
+		p := ClasificarPalabra(palabra)
+		tokens = append(tokens, Token{p.Tipo, p.Texto})
+	}
+
+	return tokens, nil
+}
+
+// ValidarTokens valida los tokens generados a partir de la oración
+func ValidarTokens(tokens []Token) (string, string) {
+	if len(tokens) == 0 {
+		return "Inválida", "No se encontraron tokens."
+	}
+
+	var (
+		tieneSujeto bool
+		tieneVerbo  bool // Ahora considera tanto verbos simples como auxiliares
+	)
+
+	for _, token := range tokens {
+		switch token.Tipo {
+		case TipoSujeto:
+			tieneSujeto = true
+		case TipoVerboSimple, TipoVerboAuxiliar: // Considera ambos tipos de verbos
+			tieneVerbo = true
+		}
+
+		if tieneSujeto && tieneVerbo {
+			break
 		}
 	}
 
-	if a.estado == EstadoFinal || a.estado == EstadoComplemento {
-		return "Válida", "La oración cumple con la estructura gramatical"
+	if tieneSujeto && tieneVerbo {
+		return "Válida", "La oración tiene una estructura válida."
 	}
 
-	return "No válida", "La oración está incompleta"
+	return "Inválida", "La oración debe contener al menos un sujeto y un verbo."
 }

@@ -3,6 +3,7 @@
 ### Descripción del Proyecto
 
 Este proyecto implementa un servidor web en **Go** para la validación de oraciones en inglés. Utiliza un autómata independiente de contexto que analiza la estructura gramatical de cada oración para determinar si es válida en:
+
 - **Presente Simple**
 - **Pasado Simple**
 - **Uso del verbo "To Be"**
@@ -18,12 +19,14 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 ### Instalación
 
 1. Clona el repositorio:
+
    ```bash
    git clone https://github.com/jjvnz/validar_oraciones.git
    cd validar_oraciones
    ```
 
 2. Ejecuta el proyecto:
+
    ```bash
    go run main.go
    ```
@@ -39,11 +42,44 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 ### Ejemplo de Oraciones
 
 ```plaintext
-He plays soccer every weekend.
-They went to the park yesterday.
-I am learning Go programming.
-She likes music a lot.
-We saw a beautiful sunset.
+I was in Japan last year.
+She had a headache yesterday.
+We did our homework last night.
 ```
 
 ---
+
+### Construcción y Ejecución con Docker
+
+Para construir y ejecutar el proyecto utilizando Docker, sigue estos pasos:
+
+#### Requisitos Previos
+
+Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu sistema.
+
+#### Construcción de la Imagen Docker
+
+1. En la raíz del proyecto, crea una imagen Docker utilizando el siguiente comando:
+
+   ```bash
+   docker build -t validar_oraciones .
+   ```
+
+   ```bash
+   sudo docker build --no-cache -t validar_oraciones .
+   ```
+
+   Esto crea una imagen llamada `validar_oraciones` basada en el `Dockerfile` presente en el directorio.
+
+#### Ejecución del Contenedor Docker
+
+2. Una vez que la imagen se ha construido con éxito, puedes ejecutar el contenedor con el siguiente comando:
+
+   ```bash
+   docker run -d -p 8080:8080 validar_oraciones
+   ```
+
+   - `-d`: Ejecuta el contenedor en segundo plano (modo "detached").
+   - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
+
+3. Abre tu navegador y ve a `http://localhost:8080`.

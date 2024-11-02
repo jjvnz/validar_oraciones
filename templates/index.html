@@ -1,113 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador de Oraciones</title>
-    <link href="/static/css/output.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 sm:p-6 md:p-8">
-    <div class="max-w-4xl mx-auto space-y-6">
-        <!-- Header -->
-        <div class="text-center space-y-4">
-            <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                Validador de Oraciones
-            </h1>
-            <div class="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                <p class="text-gray-700 mb-2">Este validador analiza:</p>
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Presente Simple
-                    </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        Pasado Simple
-                    </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                        Verbo To Be
-                    </span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                        Gramática AIC
-                    </span>
-                </div>
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grammar Validator</title>
+    <link rel="stylesheet" href="../static/css/custom.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="sidebar-left">
+        <button title="Settings">⚙️</button>
+        <button title="New Document">📄</button>
+        <button title="Templates">📝</button>
+        <button title="Help">❓</button>
+      </div>
+
+      <div class="main-content">
+        <div class="document-header">
+          <h1 class="document-title">Grammar Validator Simple Past</h1>
+          <span class="badge">English</span>
         </div>
 
-        <!-- Form -->
-        <form method="POST" class="shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm rounded-lg">
-            <div class="p-6 space-y-4">
-                <div class="flex justify-between items-center mb-2">
-                    <label for="oraciones" class="text-gray-700 font-semibold">Ingrese las oraciones:</label>
-                    <span id="sentenceCount" class="text-sm text-gray-500">0/5 oraciones</span>
-                </div>
-                <div class="relative">
-                    <textarea 
-                        name="oraciones" 
-                        id="oraciones" 
-                        rows="4" 
-                        class="w-full p-4 border-2 border-gray-200 rounded-lg bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
-                        placeholder="Escriba hasta 5 oraciones separadas por punto (.) Ejemplo: I play football. She likes music."
-                        required
-                    ></textarea>
-                    <div id="characterCount" class="absolute bottom-2 right-2 text-xs text-gray-500"></div>
-                </div>
-                <button 
-                    type="submit" 
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transform transition-all duration-300 hover:scale-[1.02] focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                    Validar Oraciones
-                </button>
+        <form action="/validate" method="POST">
+          <div class="input-area">
+            <div class="textarea-wrapper">
+              <textarea
+                name="oraciones"
+                class="input-field"
+                placeholder="Enter your text here for grammar validation..."
+                rows="10"
+              ></textarea>
             </div>
+            <button type="submit" class="submit-button">
+              Validate Grammar
+            </button>
+          </div>
         </form>
+      </div>
 
-        <!-- Results -->
-        {{if .Resultados}}
-            <div class="space-y-4">
-                <h2 class="text-2xl font-semibold text-gray-800">Resultados del Análisis</h2>
-                <div class="grid gap-4">
-                    {{range $index, $oracion := .Oraciones}}
-                        <div class="transform transition-all duration-300 hover:scale-[1.02] p-4 rounded-lg shadow-sm {{if eq (index $.Resultados $index) "No válida."}}bg-gradient-to-r from-red-50 to-pink-50{{else}}bg-gradient-to-r from-green-50 to-emerald-50{{end}}">
-                            <div class="flex justify-between items-start">
-                                <div class="space-y-2">
-                                    <p class="text-gray-800 font-medium">{{$oracion}}</p>
-                                    <p class="text-sm {{if eq (index $.Resultados $index) "No válida."}}text-red-600{{else}}text-green-600{{end}}">
-                                        {{index $.Resultados $index}}
-                                    </p>
-                                </div>
-                                <span class="ml-4 px-3 py-1 rounded-full text-sm font-medium {{if eq (index $.Resultados $index) "No válida."}}bg-red-100 text-red-800{{else}}bg-green-100 text-green-800{{end}}">
-                                    {{if eq (index $.Resultados $index) "No válida."}}✗ Inválida{{else}}✓ Válida{{end}}
-                                </span>
-                            </div>
-                        </div>
-                    {{end}}
-                </div>
+      <div class="sidebar-right">
+        <div class="review-header">
+          <h2 class="review-title">Suggestions</h2>
+          <span class="badge">{{.TotalOraciones}}</span>
+        </div>
+
+        <div class="suggestions-container">
+          {{range .Oraciones}}
+          <div class="suggestion">
+            <div class="suggestion-header">
+              <span class="badge"
+                >{{if .EsValida}}Valid{{else}}Error{{end}}</span
+              >
             </div>
-        {{end}}
-
-        <!-- Error Message -->
-        {{if .ErrorMessage}}
-            <script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: '{{.ErrorMessage}}',
-                    confirmButtonColor: '#4F46E5'
-                });
-            </script>
-        {{end}}
-
-        <!-- Success Message -->
-        {{if .AnyValid}}
-            <script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: 'Las oraciones han sido validadas correctamente.',
-                    confirmButtonColor: '#4F46E5'
-                });
-            </script>
-        {{end}}
+            <p>{{.Oracion}}</p>
+            <p><small>{{.Explicacion}}</small></p>
+          </div>
+          {{else}}
+          <div class="suggestion">
+            <p>No grammar issues found!</p>
+          </div>
+          {{end}}
+        </div>
+      </div>
     </div>
-    <script src="/static/js/scripts.js"></script>
-</body>
+  </body>
 </html>
