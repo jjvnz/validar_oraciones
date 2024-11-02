@@ -11,8 +11,6 @@
 
 # Archivos de configuración y dependencias
 vendor/
-*.mod
-*.sum
 
 # Archivos específicos de entorno
 .env
@@ -27,8 +25,3 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
-
-
-/node_modules
-
-validar_oraciones
