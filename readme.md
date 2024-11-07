@@ -39,13 +39,33 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 2. Presiona "Validar Oraciones".
 3. El sistema mostrará si cada oración es válida o no de acuerdo a la estructura gramatical reconocida.
 
-### Ejemplo de Oraciones
+### Ejemplo de Oraciones: 5 oraciones afirmativas correctas en pasado simple y 5 incorrectas
 
-```plaintext
-I was in Japan last year.
-She had a headache yesterday.
-We did our homework last night.
-```
+**Oraciones correctas:**
+
+1. I visited my grandmother last weekend.
+2. She played soccer with her friends yesterday.
+3. They watched a movie last night.
+4. We cleaned the house on Saturday.
+5. He studied for the test last week.
+
+**Oraciones incorrectas:**
+
+1. I visit my grandmother last weekend.  
+   *(Incorrecto: "visit" debería ser "visited")*
+
+2. She play soccer with her friends yesterday.  
+   *(Incorrecto: "play" debería ser "played")*
+
+3. They watches a movie last night.  
+   *(Incorrecto: "watches" debería ser "watched")*
+
+4. We clean the house on Saturday.  
+   *(Incorrecto: "clean" debería ser "cleaned" para indicar una acción pasada)*
+
+5. He studys for the test last week.  
+   *(Incorrecto: "studys" debería ser "studied")*
+
 
 ---
 
@@ -83,3 +103,4 @@ Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu
    - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
 
 3. Abre tu navegador y ve a `http://localhost:8080`.
+

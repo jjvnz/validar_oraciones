@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"validar_oraciones/models"
-	"validar_oraciones/validators"
+	parser "validar_oraciones/parser"
 )
 
 // OracionHandler maneja las solicitudes relacionadas con la validación de oraciones
@@ -148,7 +148,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []models.Resultado
 		}
 
 		// Análisis léxico
-		tokens, err := validators.AnalizarLexico(oracion)
+		tokens, err := parser.AnalizarLexico(oracion)
 		if err != nil {
 			resultados = append(resultados, models.ResultadoOracion{
 				Oracion:     oracion,
@@ -160,7 +160,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []models.Resultado
 		}
 
 		// Validar la estructura de la oración basada en los tokens
-		validez, explicacion := validators.ValidarTokens(tokens)
+		validez, explicacion := parser.ValidarTokens(tokens)
 		resultados = append(resultados, models.ResultadoOracion{
 			Oracion:     oracion,
 			EsValida:    validez == "Válida",
@@ -223,7 +223,7 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Análisis léxico
-	tokens, err := validators.AnalizarLexico(request.Oracion)
+	tokens, err := parser.AnalizarLexico(request.Oracion)
 	if err != nil {
 		h.logger.Printf("Error en el análisis léxico: %v", err)
 		http.Error(w, "Error en el análisis de la oración", http.StatusInternalServerError)
@@ -231,13 +231,13 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Validar la estructura de la oración basada en los tokens
-	validez, explicacion := validators.ValidarTokens(tokens)
+	validez, explicacion := parser.ValidarTokens(tokens)
 
 	response := struct {
-		Tokens      []validators.Token `json:"tokens"`
-		EsValida    bool               `json:"es_valida"`
-		Mensaje     string             `json:"mensaje"`
-		Explicacion string             `json:"explicacion"`
+		Tokens      []parser.Token `json:"tokens"`
+		EsValida    bool           `json:"es_valida"`
+		Mensaje     string         `json:"mensaje"`
+		Explicacion string         `json:"explicacion"`
 	}{
 		Tokens:      tokens,
 		EsValida:    validez == "Válida",

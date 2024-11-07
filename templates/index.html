@@ -18,7 +18,6 @@
       <div class="main-content">
         <div class="document-header">
           <h1 class="document-title">Grammar Validator Simple Past</h1>
-          <span class="badge">English</span>
         </div>
 
         <form action="/validate" method="POST">
@@ -27,12 +26,12 @@
               <textarea
                 name="oraciones"
                 class="input-field"
-                placeholder="Enter your text here for grammar validation..."
+                placeholder="Introduce tu texto para validar la gramática..."
                 rows="10"
               ></textarea>
             </div>
             <button type="submit" class="submit-button">
-              Validate Grammar
+              Validar Gramática
             </button>
           </div>
         </form>
@@ -40,28 +39,51 @@
 
       <div class="sidebar-right">
         <div class="review-header">
-          <h2 class="review-title">Suggestions</h2>
+          <h2 class="review-title">Sugerencias</h2>
           <span class="badge">{{.TotalOraciones}}</span>
         </div>
 
         <div class="suggestions-container">
           {{range .Oraciones}}
-          <div class="suggestion">
+          <div class="suggestion {{if .EsValida}}valid{{else}}invalid{{end}}">
             <div class="suggestion-header">
-              <span class="badge"
-                >{{if .EsValida}}Valid{{else}}Error{{end}}</span
-              >
+              <span class="badge">{{if .EsValida}}Válida{{else}}Error{{end}}</span>
             </div>
             <p>{{.Oracion}}</p>
             <p><small>{{.Explicacion}}</small></p>
           </div>
           {{else}}
           <div class="suggestion">
-            <p>No grammar issues found!</p>
+            <p>No se encontraron errores gramaticales.</p>
           </div>
           {{end}}
         </div>
       </div>
     </div>
   </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const inputField = document.querySelector('.input-field');
+      const submitButton = document.querySelector('.submit-button');
+      
+      if (inputField && submitButton) {
+        inputField.addEventListener('input', function() {
+          const text = this.value;
+          const maxLines = 10; 
+          const maxSentences = 5; 
+          
+          const lines = text.split('\n').filter(line => line.trim().length > 0);
+          const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+
+          if (lines.length > maxLines || sentences.length > maxSentences) {
+            alert("Has alcanzado el número máximo permitido de líneas o oraciones.");
+            submitButton.disabled = true;
+          } else {
+            submitButton.disabled = false;
+          }
+        });
+      }
+    });
+  </script>
 </html>
+
