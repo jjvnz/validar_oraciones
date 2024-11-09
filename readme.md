@@ -13,7 +13,7 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 
 - **main.go**: Inicializa el servidor web y define las rutas.
 - **handlers**: Contiene la lógica de manejo de peticiones, como la recepción de oraciones y el despliegue de resultados en el navegador.
-- **validators**: Incluye el autómata que valida la estructura de las oraciones en función de sus reglas gramaticales.
+- **parser**: Incluye el autómata que valida la estructura de las oraciones en función de sus reglas gramaticales.
 - **templates**: Archivos HTML para la interfaz de usuario.
 
 ### Instalación

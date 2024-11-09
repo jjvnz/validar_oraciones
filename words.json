@@ -1,0 +1,93 @@
+{
+    "verbos": {
+      "regulares": [
+        "played",
+        "visited",
+        "walked",
+        "talked",
+        "worked",
+        "studied",
+        "bought",
+        "sold",
+        "taught",
+        "caught",
+        "thought",
+        "brought"
+      ],
+      "irregulares": [
+        "went",
+        "saw",
+        "ate",
+        "drove",
+        "wrote",
+        "slept",
+        "bought",
+        "sold",
+        "taught",
+        "caught",
+        "thought",
+        "began",
+        "took",
+        "had",
+        "did",
+        "could",
+        "might",
+        "should",
+        "will",
+        "may",
+        "can",
+        "would"
+      ],
+      "auxiliares": [
+        "had",
+        "did",
+        "will",
+        "would",
+        "might",
+        "can",
+        "could",
+        "shall"
+      ],
+      "estado": [
+        "was",
+        "were",
+        "is",
+        "are"
+      ]
+    },
+    "sujeto": [
+      "i", "you", "he", "she", "it", "we", "they",
+      "me", "him", "her", "us", "them", "myself", "yourself",
+      "himself", "herself", "itself", "ourselves", "themselves"
+    ],
+    "complementos": [
+      "football", "music", "movie", "book", "school", "house",
+      "car", "dog", "cat", "computer", "phone", "food", "water",
+      "time", "day", "night", "morning", "evening", "afternoon"
+    ],
+    "preposiciones": [
+      "in", "on", "at", "by", "for", "with", "to", "from",
+      "under", "over", "between", "among", "through", "during"
+    ],
+    "articulos": [
+      "a", "an", "the"
+    ],
+    "adjetivos": [
+      "big", "small", "good", "bad", "happy", "sad", "new",
+      "old", "young", "fast", "slow", "hot", "cold", "beautiful"
+    ],
+    "adverbios": [
+      "quickly", "slowly", "carefully", "happily", "sadly",
+      "very", "really", "quite", "almost", "always", "never"
+    ],
+    "conjunciones": [
+      "and", "but", "or", "nor", "for", "yet", "so",
+      "because", "although", "unless", "since", "while"
+    ],
+    "tiempos": [
+      "yesterday", "today", "tomorrow", "last week", "last year",
+      "last month", "next week", "next year", "next month",
+      "ago", "later", "soon", "now", "then"
+    ]
+  }
+  

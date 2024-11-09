@@ -1,6 +1,42 @@
 package models
 
-import "time"
+import (
+	"time"
+)
+
+// TipoPalabra representa el tipo de palabra con más categorías
+type TipoPalabra uint8
+
+const (
+	TipoDesconocido TipoPalabra = iota
+	TipoSujeto
+	TipoVerboSimple
+	TipoVerboEstado
+	TipoVerboAuxiliar
+	TipoComplemento
+	TipoTiempo
+	TipoPreposicion
+	TipoArticulo
+	TipoAdjetivo
+	TipoAdverbio
+	TipoConjuncion
+	TipoPronombre
+	TipoPuntuacion
+)
+
+// Config contiene la configuración de la aplicación
+type Config struct {
+	Port            string
+	StaticDir       string
+	TemplatesDir    string
+	MaxRequestSize  int64
+	ReadTimeout     time.Duration
+	WriteTimeout    time.Duration
+	RequestTimeout  time.Duration
+	MaxOraciones    int
+	EnableCORS      bool
+	EnableRateLimit bool
+}
 
 // NewConfig crea una nueva configuración con valores por defecto
 func NewConfig() *Config {
@@ -26,51 +62,92 @@ type ValidadorConfig struct {
 	LimpiarEntrada bool // Si se debe limpiar la entrada
 }
 
+// NewValidadorConfig crea una nueva instancia de ValidadorConfig con valores por defecto
+func NewValidadorConfig() ValidadorConfig {
+	return ValidadorConfig{
+		MinPalabras:    1,
+		MaxPalabras:    50,
+		MaxOraciones:   5,
+		LimpiarEntrada: true,
+	}
+}
+
+// Metadata almacena información adicional sobre la palabra
+type Metadata struct {
+	EsNombrePropio bool
+	EsAbreviatura  bool
+	EsContraccion  bool
+	SubTipo        string
+	EsVerboEstado  bool
+}
+
+// Palabra representa una palabra con su tipo y metadata adicional
+type Palabra struct {
+	Tipo     TipoPalabra
+	Texto    string
+	Original string
+	Posicion int
+	Metadata Metadata
+}
+
+// Token representa un token de entrada con metadata
+type Token struct {
+	Tipo     TipoPalabra
+	Texto    string
+	Original string
+	Posicion int
+	Metadata Metadata
+}
+
+// ElementoOracion representa el estado de un elemento dentro de una oración
+// ElementoOracion representa el estado de un elemento dentro de una oración
+type ElementoOracion struct {
+	Encontrado bool // Cambia a mayúscula para exportar
+	Posicion   int  // Cambia a mayúscula para exportar
+	Cantidad   int  // Cambia a mayúscula para exportar
+}
+
 // ResultadoOracion representa el resultado de la validación de una oración
 type ResultadoOracion struct {
-	Oracion     string // La oración validada
-	EsValida    bool   // Indica si es válida o no
-	Mensaje     string // Mensaje de validación
-	Explicacion string // Explicación de la validación
+	Oracion     string
+	EsValida    bool
+	Mensaje     string
+	Explicacion string
 }
 
 // Estadisticas contiene estadísticas sobre las validaciones realizadas
 type Estadisticas struct {
-	PorcentajeExito float64        // Porcentaje de oraciones válidas
-	ErroresComunes  map[string]int // Contador de errores comunes
-	TiposValidos    map[string]int // Conteo de tipos válidos
+	PorcentajeExito float64
+	ErroresComunes  map[string]int
+	TiposValidos    map[string]int
 }
 
 // PageVariables contiene las variables para renderizar la plantilla
 type PageVariables struct {
-	Oraciones        []ResultadoOracion // Resultados de la validación
-	TotalOraciones   int                // Total de oraciones procesadas
-	OracionesValidas int                // Total de oraciones válidas
-	ShowResults      bool               // Si se deben mostrar resultados
-	ErrorMessage     string             // Mensaje de error si aplica
-	Estadisticas     Estadisticas       // Estadísticas de las validaciones
+	Oraciones        []ResultadoOracion
+	TotalOraciones   int
+	OracionesValidas int
+	ShowResults      bool
+	ErrorMessage     string
+	Estadisticas     Estadisticas
 }
 
-// NewValidadorConfig crea una nueva instancia de ValidadorConfig con valores por defecto
-func NewValidadorConfig() ValidadorConfig {
-	return ValidadorConfig{
-		MinPalabras:    1,    // Puedes ajustar este valor según tus requisitos
-		MaxPalabras:    50,   // Puedes ajustar este valor según tus requisitos
-		MaxOraciones:   5,    // Límite por defecto de oraciones
-		LimpiarEntrada: true, // Por defecto, limpiar la entrada
-	}
+// Contexto almacena información sobre el contexto de análisis
+type Contexto struct {
+	PalabraAnterior   string
+	PalabraSiguiente  string
+	TipoAnterior      TipoPalabra
+	TipoSiguiente     TipoPalabra
+	PosicionEnOracion int
 }
 
-// Config contiene la configuración de la aplicación
-type Config struct {
-	Port            string
-	StaticDir       string
-	TemplatesDir    string
-	MaxRequestSize  int64
-	ReadTimeout     time.Duration
-	WriteTimeout    time.Duration
-	RequestTimeout  time.Duration
-	MaxOraciones    int
-	EnableCORS      bool
-	EnableRateLimit bool
+// ErrorAnalisis representa un error durante el análisis
+type ErrorAnalisis struct {
+	Mensaje  string
+	Posicion int
+	Contexto string
+}
+
+func (e *ErrorAnalisis) Error() string {
+	return e.Mensaje
 }

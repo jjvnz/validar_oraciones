@@ -234,7 +234,7 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 	validez, explicacion := parser.ValidarTokens(tokens)
 
 	response := struct {
-		Tokens      []parser.Token `json:"tokens"`
+		Tokens      []models.Token `json:"tokens"`
 		EsValida    bool           `json:"es_valida"`
 		Mensaje     string         `json:"mensaje"`
 		Explicacion string         `json:"explicacion"`

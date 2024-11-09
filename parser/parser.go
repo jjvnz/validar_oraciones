@@ -1,199 +1,122 @@
 package validators
 
 import (
+	"encoding/json"
+	"log"
+	"os"
 	"strings"
 	"sync"
 	"unicode"
+	"validar_oraciones/models"
 )
 
-// TipoPalabra representa el tipo de palabra con más categorías
-type TipoPalabra uint8
-
-const (
-	TipoDesconocido TipoPalabra = iota
-	TipoSujeto
-	TipoVerboSimple
-	TipoVerboAuxiliar
-	TipoComplemento
-	TipoTiempo
-	TipoPreposicion
-	TipoArticulo
-	TipoAdjetivo
-	TipoAdverbio
-	TipoConjuncion
-	TipoPronombre
-	TipoPuntuacion
-)
-
-// ElementoOracion representa el estado de un elemento dentro de una oración
-type ElementoOracion struct {
-	encontrado bool // Indica si el elemento ha sido encontrado
-	posicion   int  // Posición del elemento en la oración
-	cantidad   int  // Cuántas veces aparece el elemento (aunque usualmente será 1)
-}
-
-// Palabra representa una palabra con su tipo y metadata adicional
-type Palabra struct {
-	Tipo     TipoPalabra
-	Texto    string
-	Original string   // Mantiene la palabra original antes de procesamiento
-	Posicion int      // Posición en la oración
-	Metadata Metadata // Información adicional sobre la palabra
-}
-
-// Metadata almacena información adicional sobre la palabra
-type Metadata struct {
-	EsNombrePropio bool
-	EsAbreviatura  bool
-	EsContraccion  bool
-	SubTipo        string // Para clasificación más específica
-}
-
-// Token representa un token de entrada con metadata
-type Token struct {
-	Tipo     TipoPalabra
-	Texto    string
-	Original string
-	Posicion int
-	Metadata Metadata
-}
-
-// ErrorAnalisis representa un error durante el análisis
-type ErrorAnalisis struct {
-	Mensaje  string
-	Posicion int
-	Contexto string
-}
-
-func (e *ErrorAnalisis) Error() string {
-	return e.Mensaje
-}
-
-// Contexto almacena información sobre el contexto de análisis
-type Contexto struct {
-	PalabraAnterior   string
-	PalabraSiguiente  string
-	TipoAnterior      TipoPalabra
-	TipoSiguiente     TipoPalabra
-	PosicionEnOracion int
-}
-
-// diccionario es un singleton thread-safe para el mapa de palabras
+// Variables globales
 var (
-	diccionario map[string]Palabra
+	diccionario map[string]models.Palabra
 	once        sync.Once
 	mu          sync.RWMutex
 )
 
-// inicializarDiccionario crea el mapa de palabras una sola vez
+// Estructura para leer el JSON de palabras
+type WordsData struct {
+	Verbosos struct {
+		Regulares   []string `json:"regulares"`
+		Irregulares []string `json:"irregulares"`
+		Auxiliares  []string `json:"auxiliares"`
+		Estado      []string `json:"estado"`
+	} `json:"verbos"`
+	Sujeto        []string `json:"sujeto"`
+	Complementos  []string `json:"complementos"`
+	Preposiciones []string `json:"preposiciones"`
+	Articulos     []string `json:"articulos"`
+	Adjetivos     []string `json:"adjetivos"`
+	Adverbios     []string `json:"adverbios"`
+	Conjunciones  []string `json:"conjunciones"`
+	Tiempos       []string `json:"tiempos"`
+}
+
+// Inicializa el diccionario de palabras, asegurándose de hacerlo solo una vez
 func inicializarDiccionario() {
 	once.Do(func() {
-		diccionario = make(map[string]Palabra, 1000)
+		diccionario = make(map[string]models.Palabra, 1000)
 
-		// Sujetos y pronombres
-		agregarPalabras([]string{
-			"i", "you", "he", "she", "it", "we", "they",
-			"me", "him", "her", "us", "them", "myself", "yourself",
-			"himself", "herself", "itself", "ourselves", "themselves",
-		}, TipoSujeto)
+		// Cargar las palabras desde el archivo JSON
+		wordsData, err := cargarPalabrasDesdeJSON("words.json")
+		if err != nil {
+			log.Fatal("Error cargando palabras desde JSON:", err)
+			return
+		}
 
-		// Verbos en pasado simple
-		agregarPalabras([]string{
-			"played", "visited", "walked", "talked", "worked", "studied",
-			"went", "saw", "ate", "drove", "wrote", "slept",
-			"bought", "sold", "taught", "caught", "thought", "brought",
-		}, TipoVerboSimple)
-
-		// Verbos auxiliares (No deben estar presentes en pasados simples afirmativos)
-		agregarPalabras([]string{
-			"was", "were", "had", "did", "could", "would", "should",
-			"might", "must", "shall", "will", "can", "may",
-		}, TipoVerboAuxiliar)
-
-		// Complementos (sustantivos comunes)
-		agregarPalabras([]string{
-			"football", "music", "movie", "book", "school", "house",
-			"car", "dog", "cat", "computer", "phone", "food", "water",
-			"time", "day", "night", "morning", "evening", "afternoon",
-		}, TipoComplemento)
-
-		// Expresiones de tiempo
-		agregarPalabras([]string{
-			"yesterday", "today", "tomorrow", "last week", "last year",
-			"last month", "next week", "next year", "next month",
-			"ago", "later", "soon", "now", "then",
-		}, TipoTiempo)
-
-		// Preposiciones
-		agregarPalabras([]string{
-			"in", "on", "at", "by", "for", "with", "to", "from",
-			"under", "over", "between", "among", "through", "during",
-		}, TipoPreposicion)
-
-		// Artículos
-		agregarPalabras([]string{
-			"a", "an", "the",
-		}, TipoArticulo)
-
-		// Adjetivos comunes
-		agregarPalabras([]string{
-			"big", "small", "good", "bad", "happy", "sad", "new",
-			"old", "young", "fast", "slow", "hot", "cold", "beautiful",
-		}, TipoAdjetivo)
-
-		// Adverbios
-		agregarPalabras([]string{
-			"quickly", "slowly", "carefully", "happily", "sadly",
-			"very", "really", "quite", "almost", "always", "never",
-		}, TipoAdverbio)
-
-		// Conjunciones
-		agregarPalabras([]string{
-			"and", "but", "or", "nor", "for", "yet", "so",
-			"because", "although", "unless", "since", "while",
-		}, TipoConjuncion)
+		// Agregar las palabras de cada categoría
+		agregarPalabras(wordsData.Sujeto, models.TipoSujeto)
+		agregarPalabras(wordsData.Verbosos.Regulares, models.TipoVerboSimple)
+		agregarPalabras(wordsData.Verbosos.Irregulares, models.TipoVerboSimple)
+		agregarPalabras(wordsData.Verbosos.Auxiliares, models.TipoVerboAuxiliar)
+		agregarPalabras(wordsData.Verbosos.Estado, models.TipoVerboEstado)
+		agregarPalabras(wordsData.Complementos, models.TipoComplemento)
+		agregarPalabras(wordsData.Tiempos, models.TipoTiempo)
+		agregarPalabras(wordsData.Preposiciones, models.TipoPreposicion)
+		agregarPalabras(wordsData.Articulos, models.TipoArticulo)
+		agregarPalabras(wordsData.Adjetivos, models.TipoAdjetivo)
+		agregarPalabras(wordsData.Adverbios, models.TipoAdverbio)
+		agregarPalabras(wordsData.Conjunciones, models.TipoConjuncion)
 	})
 }
 
-// agregarPalabras agrega palabras al diccionario con thread safety
-func agregarPalabras(palabras []string, tipo TipoPalabra) {
+// Función para cargar palabras desde el archivo JSON
+func cargarPalabrasDesdeJSON(filepath string) (WordsData, error) {
+	var wordsData WordsData
+	file, err := os.ReadFile(filepath)
+	if err != nil {
+		return wordsData, err
+	}
+
+	err = json.Unmarshal(file, &wordsData)
+	if err != nil {
+		return wordsData, err
+	}
+
+	return wordsData, nil
+}
+
+// Función para agregar palabras con metadata
+func agregarPalabrasConMetadata(palabras []string, tipo models.TipoPalabra, metadata models.Metadata) {
 	mu.Lock()
 	defer mu.Unlock()
 
 	for _, palabra := range palabras {
-		diccionario[palabra] = Palabra{
-			Tipo:  tipo,
-			Texto: palabra,
+		diccionario[palabra] = models.Palabra{
+			Tipo:     tipo,
+			Texto:    palabra,
+			Metadata: metadata,
 		}
 	}
 }
 
-// preprocesarTexto limpia y prepara el texto para análisis
+// Función para agregar palabras al diccionario sin metadata
+func agregarPalabras(palabras []string, tipo models.TipoPalabra) {
+	agregarPalabrasConMetadata(palabras, tipo, models.Metadata{})
+}
+
+// Función de preprocesamiento del texto
 func preprocesarTexto(texto string) string {
-	// Convertir a minúsculas manteniendo las mayúsculas en nombres propios
 	palabras := strings.Fields(texto)
 	for i, palabra := range palabras {
 		if !esPosibleNombrePropio(palabra) {
 			palabras[i] = strings.ToLower(palabra)
 		}
 	}
-
 	return strings.Join(palabras, " ")
 }
 
-// esPosibleNombrePropio verifica si una palabra podría ser un nombre propio
+// Verificar si una palabra puede ser un nombre propio
 func esPosibleNombrePropio(palabra string) bool {
-	if len(palabra) == 0 {
-		return false
-	}
-	return unicode.IsUpper(rune(palabra[0]))
+	return len(palabra) > 0 && unicode.IsUpper(rune(palabra[0]))
 }
 
-// obtenerContextoPalabra obtiene el contexto de una palabra en la oración
-func obtenerContextoPalabra(palabras []string, tokens []Token, posicion int) Contexto {
-	contexto := Contexto{
-		PosicionEnOracion: posicion,
-	}
+// Obtención del contexto de la palabra en la oración
+func obtenerContextoPalabra(palabras []string, tokens []models.Token, posicion int) models.Contexto {
+	contexto := models.Contexto{PosicionEnOracion: posicion}
 
 	if posicion > 0 {
 		contexto.PalabraAnterior = palabras[posicion-1]
@@ -209,8 +132,8 @@ func obtenerContextoPalabra(palabras []string, tokens []Token, posicion int) Con
 	return contexto
 }
 
-// ClasificarPalabra determina el tipo de una palabra con más contexto
-func ClasificarPalabra(palabra string, ctx Contexto) Palabra {
+// Clasificar palabra basándonos en su contexto
+func ClasificarPalabra(palabra string, ctx models.Contexto) models.Palabra {
 	inicializarDiccionario()
 
 	palabraOriginal := palabra
@@ -226,46 +149,46 @@ func ClasificarPalabra(palabra string, ctx Contexto) Palabra {
 		return clasificacion
 	}
 
-	// Análisis morfológico básico para palabras desconocidas
+	// Clasificación de palabras con sufijos
 	switch {
 	case strings.HasSuffix(palabra, "ly"):
-		return Palabra{TipoAdverbio, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{}}
+		return models.Palabra{Tipo: models.TipoAdverbio, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion}
 	case strings.HasSuffix(palabra, "ed"):
-		return Palabra{TipoVerboSimple, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{}}
+		return models.Palabra{Tipo: models.TipoVerboSimple, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion}
 	case strings.HasSuffix(palabra, "ing"):
-		return Palabra{TipoVerboSimple, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{}}
+		return models.Palabra{Tipo: models.TipoVerboSimple, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion}
 	case esPosibleNombrePropio(palabraOriginal):
-		return Palabra{TipoSujeto, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{EsNombrePropio: true}}
+		return models.Palabra{Tipo: models.TipoSujeto, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion, Metadata: models.Metadata{EsNombrePropio: true}}
 	}
 
-	// Análisis basado en contexto
-	if ctx.TipoAnterior == TipoArticulo {
-		return Palabra{TipoComplemento, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{}}
+	// Si el tipo anterior fue un artículo, se clasifica como complemento
+	if ctx.TipoAnterior == models.TipoArticulo {
+		return models.Palabra{Tipo: models.TipoComplemento, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion}
 	}
 
-	return Palabra{TipoDesconocido, palabra, palabraOriginal, ctx.PosicionEnOracion, Metadata{}}
+	// Si no se encuentra en el diccionario, se marca como desconocido
+	return models.Palabra{Tipo: models.TipoDesconocido, Texto: palabra, Original: palabraOriginal, Posicion: ctx.PosicionEnOracion}
 }
 
-// AnalizarLexico recibe una oración y devuelve una lista de tokens con análisis mejorado
-func AnalizarLexico(oracion string) ([]Token, error) {
+// Análisis léxico de una oración
+func AnalizarLexico(oracion string) ([]models.Token, error) {
 	if strings.TrimSpace(oracion) == "" {
-		return nil, &ErrorAnalisis{
+		return nil, &models.ErrorAnalisis{
 			Mensaje:  "la oración está vacía",
 			Posicion: 0,
 			Contexto: "",
 		}
 	}
 
-	// Preprocesar el texto
 	oracion = preprocesarTexto(oracion)
 	palabras := strings.Fields(oracion)
-	tokens := make([]Token, 0, len(palabras))
+	tokens := make([]models.Token, 0, len(palabras))
 
 	for i, palabra := range palabras {
 		ctx := obtenerContextoPalabra(palabras, tokens, i)
 		p := ClasificarPalabra(palabra, ctx)
 
-		token := Token{
+		token := models.Token{
 			Tipo:     p.Tipo,
 			Texto:    p.Texto,
 			Original: p.Original,
@@ -279,64 +202,71 @@ func AnalizarLexico(oracion string) ([]Token, error) {
 	return tokens, nil
 }
 
-// ValidarTokens valida los tokens y la estructura de la oración para pasado simple afirmativo
-func ValidarTokens(tokens []Token) (string, string) {
+// Validación de tokens para oraciones en pasado simple afirmativo
+func ValidarTokens(tokens []models.Token) (string, string) {
 	if len(tokens) == 0 {
 		return "Inválida", "No se encontraron tokens."
 	}
 
-	// Estructura para seguimiento de elementos clave
-	elementos := map[TipoPalabra]*ElementoOracion{
-		TipoSujeto:      {false, -1, 0},
-		TipoVerboSimple: {false, -1, 0},
-		TipoComplemento: {false, -1, 0},
+	// Inicializar elementos de la oración
+	elementos := map[models.TipoPalabra]*models.ElementoOracion{
+		models.TipoSujeto:      {Encontrado: false, Posicion: -1},
+		models.TipoVerboSimple: {Encontrado: false, Posicion: -1},
+		models.TipoVerboEstado: {Encontrado: false, Posicion: -1},
+		models.TipoComplemento: {Encontrado: false, Posicion: -1},
 	}
 
-	// Analizar la estructura de la oración
+	// Recorrer tokens y actualizar elementos
 	for i, token := range tokens {
-		if elemento, existe := elementos[token.Tipo]; existe {
-			if !elemento.encontrado {
-				elemento.encontrado = true
-				elemento.posicion = i
-			}
-			elemento.cantidad++
+		if elemento, existe := elementos[token.Tipo]; existe && !elemento.Encontrado {
+			elemento.Encontrado = true
+			elemento.Posicion = i
+			elemento.Cantidad++
 		}
 	}
 
-	// Validaciones específicas para pasado simple afirmativo
-	// Verificar que el sujeto esté presente
-	if !elementos[TipoSujeto].encontrado {
+	// Verificar que la oración tenga un sujeto
+	if !elementos[models.TipoSujeto].Encontrado {
 		return "Inválida", "Falta el sujeto en la oración."
 	}
 
-	// Verificar que el verbo en pasado esté presente
-	if !elementos[TipoVerboSimple].encontrado {
-		return "Inválida", "Falta el verbo en pasado simple en la oración."
+	// Verificar que haya al menos un verbo
+	tieneVerboSimple := elementos[models.TipoVerboSimple].Encontrado
+	tieneVerboEstado := elementos[models.TipoVerboEstado].Encontrado
+
+	if !tieneVerboSimple && !tieneVerboEstado {
+		return "Inválida", "Falta un verbo en pasado en la oración."
 	}
 
-	// Verificar que no haya verbos auxiliares (como "did", "was", "were")
+	// Verificar que no haya verbos auxiliares
 	for _, token := range tokens {
-		if token.Tipo == TipoVerboAuxiliar {
+		if token.Tipo == models.TipoVerboAuxiliar {
 			return "Inválida", "La oración no debe contener verbos auxiliares."
 		}
 	}
 
-	// Validar la posición del sujeto y el verbo (el verbo debe seguir al sujeto)
-	if elementos[TipoSujeto].posicion > elementos[TipoVerboSimple].posicion {
+	// Determinar la posición del verbo
+	var posicionVerbo int
+	if tieneVerboSimple {
+		posicionVerbo = elementos[models.TipoVerboSimple].Posicion
+	} else {
+		posicionVerbo = elementos[models.TipoVerboEstado].Posicion
+	}
+
+	// Verificar que el verbo siga al sujeto
+	if elementos[models.TipoSujeto].Posicion > posicionVerbo {
 		return "Inválida", "El verbo debe seguir al sujeto."
 	}
 
-	// Validar que los complementos (si existen) no precedan al verbo
-	if elementos[TipoComplemento].encontrado &&
-		elementos[TipoVerboSimple].posicion > elementos[TipoComplemento].posicion {
-		return "Inválida", "El verbo debe preceder al complemento."
+	// Verificar que el complemento siga al verbo, si existe
+	if elementos[models.TipoComplemento].Encontrado && posicionVerbo > elementos[models.TipoComplemento].Posicion {
+		return "Inválida", "El complemento debe ir después del verbo."
 	}
 
-	// Si se pasa todas las validaciones, la oración es válida
 	return "Válida", "La oración tiene una estructura válida en pasado simple afirmativo."
 }
 
-// ValidarOracion valida una oración en pasado simple afirmativo
+// Función para validar toda la oración
 func ValidarOracion(oracion string) (string, string) {
 	tokens, err := AnalizarLexico(oracion)
 	if err != nil {
