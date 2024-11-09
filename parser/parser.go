@@ -20,19 +20,23 @@ var (
 // Estructura para leer el JSON de palabras
 type WordsData struct {
 	Verbosos struct {
-		Regulares   []string `json:"regulares"`
-		Irregulares []string `json:"irregulares"`
-		Auxiliares  []string `json:"auxiliares"`
-		Estado      []string `json:"estado"`
+		Regulares     []string `json:"regulares"`
+		Irregulares   []string `json:"irregulares"`
+		Auxiliares    []string `json:"auxiliares"`
+		Estado        []string `json:"estado"`
+		ModalesPasado []string `json:"modales_pasado"` // Nuevos verbos modales en pasado
 	} `json:"verbos"`
-	Sujeto        []string `json:"sujeto"`
-	Complementos  []string `json:"complementos"`
-	Preposiciones []string `json:"preposiciones"`
-	Articulos     []string `json:"articulos"`
-	Adjetivos     []string `json:"adjetivos"`
-	Adverbios     []string `json:"adverbios"`
-	Conjunciones  []string `json:"conjunciones"`
-	Tiempos       []string `json:"tiempos"`
+	Sujeto              []string `json:"sujeto"`
+	Complementos        []string `json:"complementos"`
+	Preposiciones       []string `json:"preposiciones"`
+	Articulos           []string `json:"articulos"`
+	Adjetivos           []string `json:"adjetivos"`
+	Adverbios           []string `json:"adverbios"`
+	Conjunciones        []string `json:"conjunciones"`
+	Tiempos             []string `json:"tiempos"`
+	Negativos           []string `json:"negativos"`            // Nuevas construcciones negativas
+	CausaEfecto         []string `json:"causa_efecto"`         // Nuevas frases de causa y efecto
+	PreguntasRespuestas []string `json:"preguntas_respuestas"` // Respuestas cortas
 }
 
 // Inicializa el diccionario de palabras, asegurándose de hacerlo solo una vez
@@ -53,6 +57,10 @@ func inicializarDiccionario() {
 		agregarPalabras(wordsData.Verbosos.Irregulares, models.TipoVerboSimple)
 		agregarPalabras(wordsData.Verbosos.Auxiliares, models.TipoVerboAuxiliar)
 		agregarPalabras(wordsData.Verbosos.Estado, models.TipoVerboEstado)
+		agregarPalabras(wordsData.Verbosos.ModalesPasado, models.TipoVerboModalPasado) // Nuevos verbos modales
+		agregarPalabras(wordsData.Negativos, models.TipoNegativo)                      // Nuevas construcciones negativas
+		agregarPalabras(wordsData.PreguntasRespuestas, models.TipoRespuestaCorta)      // Respuestas cortas
+		agregarPalabras(wordsData.CausaEfecto, models.TipoCausaEfecto)                 // Nuevas frases de causa y efecto
 		agregarPalabras(wordsData.Complementos, models.TipoComplemento)
 		agregarPalabras(wordsData.Tiempos, models.TipoTiempo)
 		agregarPalabras(wordsData.Preposiciones, models.TipoPreposicion)
@@ -210,10 +218,12 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 
 	// Inicializar elementos de la oración
 	elementos := map[models.TipoPalabra]*models.ElementoOracion{
-		models.TipoSujeto:      {Encontrado: false, Posicion: -1},
-		models.TipoVerboSimple: {Encontrado: false, Posicion: -1},
-		models.TipoVerboEstado: {Encontrado: false, Posicion: -1},
-		models.TipoComplemento: {Encontrado: false, Posicion: -1},
+		models.TipoSujeto:           {Encontrado: false, Posicion: -1},
+		models.TipoVerboSimple:      {Encontrado: false, Posicion: -1},
+		models.TipoVerboEstado:      {Encontrado: false, Posicion: -1},
+		models.TipoVerboModalPasado: {Encontrado: false, Posicion: -1}, // Verbo modal en pasado
+		models.TipoComplemento:      {Encontrado: false, Posicion: -1},
+		models.TipoNegativo:         {Encontrado: false, Posicion: -1}, // Construcciones negativas
 	}
 
 	// Recorrer tokens y actualizar elementos
@@ -230,11 +240,12 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		return "Inválida", "Falta el sujeto en la oración."
 	}
 
-	// Verificar que haya al menos un verbo
+	// Verificar que haya al menos un verbo (incluyendo verbos modales en pasado)
 	tieneVerboSimple := elementos[models.TipoVerboSimple].Encontrado
 	tieneVerboEstado := elementos[models.TipoVerboEstado].Encontrado
+	tieneVerboModalPasado := elementos[models.TipoVerboModalPasado].Encontrado // Verificar verbos modales en pasado
 
-	if !tieneVerboSimple && !tieneVerboEstado {
+	if !tieneVerboSimple && !tieneVerboEstado && !tieneVerboModalPasado {
 		return "Inválida", "Falta un verbo en pasado en la oración."
 	}
 
@@ -249,8 +260,10 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 	var posicionVerbo int
 	if tieneVerboSimple {
 		posicionVerbo = elementos[models.TipoVerboSimple].Posicion
-	} else {
+	} else if tieneVerboEstado {
 		posicionVerbo = elementos[models.TipoVerboEstado].Posicion
+	} else {
+		posicionVerbo = elementos[models.TipoVerboModalPasado].Posicion // Posición del verbo modal
 	}
 
 	// Verificar que el verbo siga al sujeto
@@ -261,6 +274,11 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 	// Verificar que el complemento siga al verbo, si existe
 	if elementos[models.TipoComplemento].Encontrado && posicionVerbo > elementos[models.TipoComplemento].Posicion {
 		return "Inválida", "El complemento debe ir después del verbo."
+	}
+
+	// Verificar que no haya construcciones negativas incorrectas
+	if elementos[models.TipoNegativo].Encontrado && elementos[models.TipoVerboSimple].Encontrado {
+		return "Inválida", "La oración no puede contener verbos modales y negativos en la misma estructura."
 	}
 
 	return "Válida", "La oración tiene una estructura válida en pasado simple afirmativo."

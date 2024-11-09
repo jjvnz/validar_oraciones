@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ const (
 	TipoVerboSimple
 	TipoVerboEstado
 	TipoVerboAuxiliar
+	TipoVerboModalPasado // Nuevos verbos modales en pasado
 	TipoComplemento
 	TipoTiempo
 	TipoPreposicion
@@ -22,6 +24,9 @@ const (
 	TipoConjuncion
 	TipoPronombre
 	TipoPuntuacion
+	TipoNegativo       // Nuevas construcciones negativas
+	TipoCausaEfecto    // Nuevas frases de causa y efecto
+	TipoRespuestaCorta // Respuestas cortas
 )
 
 // Config contiene la configuración de la aplicación
@@ -44,13 +49,13 @@ func NewConfig() *Config {
 		Port:            "8080",
 		StaticDir:       "static",
 		TemplatesDir:    "templates",
-		MaxRequestSize:  1 << 20, // 1 MB
-		ReadTimeout:     5,       // 5 segundos
-		WriteTimeout:    10,      // 10 segundos
-		RequestTimeout:  30,      // 30 segundos
-		MaxOraciones:    5,       // Número máximo de oraciones
-		EnableCORS:      true,    // Habilitar CORS por defecto
-		EnableRateLimit: true,    // Habilitar límite de tasa por defecto
+		MaxRequestSize:  1 << 20,          // 1 MB
+		ReadTimeout:     5 * time.Second,  // 5 segundos
+		WriteTimeout:    10 * time.Second, // 10 segundos
+		RequestTimeout:  30 * time.Second, // 30 segundos
+		MaxOraciones:    5,                // Número máximo de oraciones
+		EnableCORS:      true,             // Habilitar CORS por defecto
+		EnableRateLimit: true,             // Habilitar límite de tasa por defecto
 	}
 }
 
@@ -99,7 +104,6 @@ type Token struct {
 	Metadata Metadata
 }
 
-// ElementoOracion representa el estado de un elemento dentro de una oración
 // ElementoOracion representa el estado de un elemento dentro de una oración
 type ElementoOracion struct {
 	Encontrado bool // Cambia a mayúscula para exportar
@@ -150,4 +154,22 @@ type ErrorAnalisis struct {
 
 func (e *ErrorAnalisis) Error() string {
 	return e.Mensaje
+}
+
+// IdentificarTipoPalabra identifica el tipo de palabra en función del texto
+func IdentificarTipoPalabra(texto string) TipoPalabra {
+	// Convertimos el texto a minúsculas para hacer la comparación insensible a mayúsculas
+	texto = strings.ToLower(texto)
+
+	switch texto {
+	case "could", "might", "would":
+		return TipoVerboModalPasado
+	case "did not", "didn't":
+		return TipoNegativo
+	case "yes", "no":
+		return TipoRespuestaCorta
+	case "because", "therefore":
+		return TipoCausaEfecto
+	}
+	return TipoDesconocido
 }
