@@ -18,6 +18,7 @@ WORKDIR /home/appuser/
 COPY --from=builder /app/validar_oraciones .
 COPY --from=builder /app/static ./static
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/words.json ./words.json
 
 # Cambiar permisos del binario
 RUN chmod 700 validar_oraciones
