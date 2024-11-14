@@ -2,18 +2,13 @@
 
 ### Descripción del Proyecto
 
-Este proyecto implementa un servidor web en **Go** para la validación de oraciones en inglés. Utiliza un autómata independiente de contexto que analiza la estructura gramatical de cada oración para determinar si es válida en:
-
-- **Presente Simple**
-- **Pasado Simple**
-- **Uso del verbo "To Be"**
-- **Gramática de Sujeto-Verbo-Complemento**
+Este proyecto implementa un servidor web en **Go** para la validación de oraciones en inglés en **pasado simple afirmativo**. El sistema utiliza **análisis gramatical** para examinar la estructura de las oraciones, asegurándose de que sigan las reglas gramaticales del **pasado simple afirmativo**. El análisis gramatical verifica la correcta conjugación de los verbos, el uso adecuado de los sujetos y otros elementos esenciales en la estructura de la oración.
 
 ### Estructura del Proyecto
 
 - **main.go**: Inicializa el servidor web y define las rutas.
 - **handlers**: Contiene la lógica de manejo de peticiones, como la recepción de oraciones y el despliegue de resultados en el navegador.
-- **parser**: Incluye el autómata que valida la estructura de las oraciones en función de sus reglas gramaticales.
+- **parser**: Implementa el análisis gramatical, validando que las oraciones sigan las reglas del **pasado simple afirmativo**.
 - **templates**: Archivos HTML para la interfaz de usuario.
 
 ### Instalación
@@ -37,7 +32,7 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 
 1. Ingresa hasta 5 oraciones en inglés, cada una terminada en punto (`.`).
 2. Presiona "Validar Oraciones".
-3. El sistema mostrará si cada oración es válida o no de acuerdo a la estructura gramatical reconocida.
+3. El sistema mostrará si cada oración es válida o no de acuerdo con la estructura gramatical del **pasado simple afirmativo**.
 
 ### Ejemplo de Oraciones: 5 oraciones afirmativas correctas en pasado simple y 5 incorrectas
 
@@ -65,7 +60,6 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 
 5. He studys for the test last week.  
    *(Incorrecto: "studys" debería ser "studied")*
-
 
 ---
 
@@ -103,4 +97,3 @@ Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu
    - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
 
 3. Abre tu navegador y ve a `http://localhost:8080`.
-
