@@ -14,18 +14,22 @@
       "traveled", "tried", "used", "visited", "waited",
       "walked", "wanted", "watched", "worked"
     ],
-    "irregulares": [
-      "ate", "became", "began", "broke", "brought", "built",
-      "bought", "caught", "chose", "came", "cut", "drew",
-      "drank", "drove", "fell", "felt", "flew", "found",
-      "forgot", "gave", "got", "grew", "had", "heard",
-      "held", "kept", "knew", "left", "lost", "made",
-      "met", "paid", "put", "ran", "read", "rode",
-      "rang", "rose", "said", "saw", "sent", "sang",
-      "sat", "slept", "spoke", "spent", "stood", "swam",
-      "took", "taught", "told", "thought", "threw", "understood",
-      "went", "won", "wrote", "wore"
-    ]
+    "irregulares": {
+      "verbos_comunes": [
+        "ate", "became", "began", "broke", "brought", "built",
+        "bought", "caught", "chose", "came", "cut", "drew",
+        "drank", "drove", "fell", "felt", "flew", "found",
+        "forgot", "gave", "got", "grew", "had", "heard",
+        "held", "kept", "knew", "left", "lost", "made",
+        "met", "paid", "put", "ran", "read", "rode",
+        "rang", "rose", "said", "saw", "sent", "sang",
+        "sat", "slept", "spoke", "spent", "stood", "swam",
+        "took", "taught", "told", "thought", "threw", "understood",
+        "went", "won", "wrote", "wore"
+      ],
+      "verbos_auxiliares": ["did"],
+      "verbos_estado": ["was", "were"]
+    }
   },
   "sujeto": [
     "I", "you", "he", "she", "it", "we", "they",
@@ -93,6 +97,9 @@
     "last night", "last week", "last month", "last year",
     "yesterday morning", "yesterday afternoon", "yesterday evening",
     "two days ago", "three weeks ago", "a month ago",
-    "in the past", "the other day"
-  ]
+    "in the past", "the other day", "next year", "in the future"
+  ],
+  "modales_pasados": [
+      "could", "might", "should", "would", "must"
+    ]
 }

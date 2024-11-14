@@ -19,12 +19,12 @@ var (
 
 // Estructura para leer el JSON de palabras
 type WordsData struct {
-	Verbosos struct {
-		Regulares     []string `json:"regulares"`
-		Irregulares   []string `json:"irregulares"`
-		Auxiliares    []string `json:"auxiliares"`
-		Estado        []string `json:"estado"`
-		ModalesPasado []string `json:"modales_pasado"`
+	Verbos struct {
+		Regulares   []string `json:"regulares"`
+		Irregulares struct {
+			VerbosComunes []string `json:"verbos_comunes"`
+			Auxiliares    []string `json:"verbos_auxiliares"`
+		} `json:"irregulares"`
 	} `json:"verbos"`
 	Sujeto            []string            `json:"sujeto"`
 	Complementos      Complementos        `json:"complementos"`
@@ -33,6 +33,7 @@ type WordsData struct {
 	Adjetivos         map[string][]string `json:"adjetivos"`
 	Adverbios         map[string][]string `json:"adverbios"`
 	ExpresionesTiempo []string            `json:"expresiones_tiempo"`
+	ModalesPasados    []string            `json:"modales_pasados"` // Campo agregado para los verbos modales pasados
 }
 
 // Nuevo struct para modelar Complementos como un objeto en lugar de una lista
@@ -56,11 +57,11 @@ func inicializarDiccionario() {
 
 		// Agregar las palabras de cada categoría
 		agregarPalabras(wordsData.Sujeto, models.TipoSujeto)
-		agregarPalabras(wordsData.Verbosos.Regulares, models.TipoVerboSimple)
-		agregarPalabras(wordsData.Verbosos.Irregulares, models.TipoVerboSimple)
-		agregarPalabras(wordsData.Verbosos.Auxiliares, models.TipoVerboAuxiliar)
-		agregarPalabras(wordsData.Verbosos.Estado, models.TipoVerboEstado)
-		agregarPalabras(wordsData.Verbosos.ModalesPasado, models.TipoVerboModalPasado) // Nuevos verbos modales
+		agregarPalabras(wordsData.Verbos.Regulares, models.TipoVerboSimple)
+		agregarPalabras(wordsData.Verbos.Irregulares.VerbosComunes, models.TipoVerboSimple) // Verbos comunes
+		agregarPalabras(wordsData.Verbos.Irregulares.Auxiliares, models.TipoVerboAuxiliar)  // Verbos auxiliares
+		agregarPalabras(wordsData.Adjetivos["estado"], models.TipoVerboEstado)              // Si hay una categoría para Estado en la estructura
+		agregarPalabras(wordsData.ModalesPasados, models.TipoVerboModalPasado)              // Nuevos verbos modales
 		agregarPalabras(wordsData.ExpresionesTiempo, models.TipoTiempo)
 		agregarPalabras(wordsData.Preposiciones, models.TipoPreposicion)
 		agregarPalabras(wordsData.Articulos, models.TipoArticulo)
@@ -75,6 +76,7 @@ func inicializarDiccionario() {
 		agregarPalabras(wordsData.Complementos.Objetos, models.TipoComplemento)
 		agregarPalabras(wordsData.Complementos.Lugares, models.TipoComplemento)
 		agregarPalabras(wordsData.Complementos.Comida, models.TipoComplemento)
+
 	})
 }
 
@@ -217,7 +219,6 @@ func AnalizarLexico(oracion string) ([]models.Token, error) {
 	return tokens, nil
 }
 
-// Validación de tokens para oraciones en pasado simple afirmativo
 func ValidarTokens(tokens []models.Token) (string, string) {
 	if len(tokens) == 0 {
 		return "Inválida", "No se encontraron tokens."
@@ -228,17 +229,55 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		models.TipoSujeto:           {Encontrado: false, Posicion: -1},
 		models.TipoVerboSimple:      {Encontrado: false, Posicion: -1},
 		models.TipoVerboEstado:      {Encontrado: false, Posicion: -1},
-		models.TipoVerboModalPasado: {Encontrado: false, Posicion: -1}, // Verbo modal en pasado
+		models.TipoVerboModalPasado: {Encontrado: false, Posicion: -1},
 		models.TipoComplemento:      {Encontrado: false, Posicion: -1},
-		models.TipoNegativo:         {Encontrado: false, Posicion: -1}, // Construcciones negativas
+		models.TipoNegativo:         {Encontrado: false, Posicion: -1},
+	}
+
+	// Lista de auxiliares no permitidos
+	auxiliaresNoPermitidos := map[string]bool{
+		"has":  true,
+		"have": true,
+		"had":  true,
+		"do":   true,
+		"does": true,
+		"did":  true,
+		"am":   true,
+		"is":   true,
+		"are":  true,
+	}
+
+	// Palabras negativas
+	palabrasNegativas := map[string]bool{
+		"not":   true,
+		"never": true,
+		"no":    true,
 	}
 
 	// Recorrer tokens y actualizar elementos
 	for i, token := range tokens {
+
+		// Verificar palabras negativas
+		if palabrasNegativas[token.Texto] {
+			return "Inválida", "No se permiten construcciones negativas en oraciones afirmativas."
+		}
+
+		// Verificar auxiliares no permitidos
+		if auxiliaresNoPermitidos[token.Texto] {
+			return "Inválida", "No se permiten verbos auxiliares en pasado simple afirmativo."
+		}
+
 		if elemento, existe := elementos[token.Tipo]; existe && !elemento.Encontrado {
 			elemento.Encontrado = true
 			elemento.Posicion = i
 			elemento.Cantidad++
+		}
+
+		// Tratar "was" y "were" como verbos válidos en pasado
+		if token.Texto == "was" || token.Texto == "were" {
+			elementos[models.TipoVerboSimple].Encontrado = true
+			elementos[models.TipoVerboSimple].Posicion = i
+			elementos[models.TipoVerboSimple].Cantidad++
 		}
 	}
 
@@ -247,20 +286,13 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		return "Inválida", "Falta el sujeto en la oración."
 	}
 
-	// Verificar que haya al menos un verbo (incluyendo verbos modales en pasado)
+	// Verificar que haya al menos un verbo (incluyendo was/were)
 	tieneVerboSimple := elementos[models.TipoVerboSimple].Encontrado
 	tieneVerboEstado := elementos[models.TipoVerboEstado].Encontrado
-	tieneVerboModalPasado := elementos[models.TipoVerboModalPasado].Encontrado // Verificar verbos modales en pasado
+	tieneVerboModalPasado := elementos[models.TipoVerboModalPasado].Encontrado
 
 	if !tieneVerboSimple && !tieneVerboEstado && !tieneVerboModalPasado {
 		return "Inválida", "Falta un verbo en pasado en la oración."
-	}
-
-	// Verificar que no haya verbos auxiliares
-	for _, token := range tokens {
-		if token.Tipo == models.TipoVerboAuxiliar {
-			return "Inválida", "La oración no debe contener verbos auxiliares."
-		}
 	}
 
 	// Determinar la posición del verbo
@@ -270,7 +302,7 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 	} else if tieneVerboEstado {
 		posicionVerbo = elementos[models.TipoVerboEstado].Posicion
 	} else {
-		posicionVerbo = elementos[models.TipoVerboModalPasado].Posicion // Posición del verbo modal
+		posicionVerbo = elementos[models.TipoVerboModalPasado].Posicion
 	}
 
 	// Verificar que el verbo siga al sujeto
