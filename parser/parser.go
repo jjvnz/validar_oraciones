@@ -24,19 +24,22 @@ type WordsData struct {
 		Irregulares   []string `json:"irregulares"`
 		Auxiliares    []string `json:"auxiliares"`
 		Estado        []string `json:"estado"`
-		ModalesPasado []string `json:"modales_pasado"` // Nuevos verbos modales en pasado
+		ModalesPasado []string `json:"modales_pasado"`
 	} `json:"verbos"`
-	Sujeto              []string `json:"sujeto"`
-	Complementos        []string `json:"complementos"`
-	Preposiciones       []string `json:"preposiciones"`
-	Articulos           []string `json:"articulos"`
-	Adjetivos           []string `json:"adjetivos"`
-	Adverbios           []string `json:"adverbios"`
-	Conjunciones        []string `json:"conjunciones"`
-	Tiempos             []string `json:"tiempos"`
-	Negativos           []string `json:"negativos"`            // Nuevas construcciones negativas
-	CausaEfecto         []string `json:"causa_efecto"`         // Nuevas frases de causa y efecto
-	PreguntasRespuestas []string `json:"preguntas_respuestas"` // Respuestas cortas
+	Sujeto            []string            `json:"sujeto"`
+	Complementos      Complementos        `json:"complementos"`
+	Preposiciones     []string            `json:"preposiciones"`
+	Articulos         []string            `json:"articulos"`
+	Adjetivos         map[string][]string `json:"adjetivos"`
+	Adverbios         map[string][]string `json:"adverbios"`
+	ExpresionesTiempo []string            `json:"expresiones_tiempo"`
+}
+
+// Nuevo struct para modelar Complementos como un objeto en lugar de una lista
+type Complementos struct {
+	Objetos []string `json:"objetos"`
+	Lugares []string `json:"lugares"`
+	Comida  []string `json:"comida"`
 }
 
 // Inicializa el diccionario de palabras, asegurándose de hacerlo solo una vez
@@ -58,16 +61,20 @@ func inicializarDiccionario() {
 		agregarPalabras(wordsData.Verbosos.Auxiliares, models.TipoVerboAuxiliar)
 		agregarPalabras(wordsData.Verbosos.Estado, models.TipoVerboEstado)
 		agregarPalabras(wordsData.Verbosos.ModalesPasado, models.TipoVerboModalPasado) // Nuevos verbos modales
-		agregarPalabras(wordsData.Negativos, models.TipoNegativo)                      // Nuevas construcciones negativas
-		agregarPalabras(wordsData.PreguntasRespuestas, models.TipoRespuestaCorta)      // Respuestas cortas
-		agregarPalabras(wordsData.CausaEfecto, models.TipoCausaEfecto)                 // Nuevas frases de causa y efecto
-		agregarPalabras(wordsData.Complementos, models.TipoComplemento)
-		agregarPalabras(wordsData.Tiempos, models.TipoTiempo)
+		agregarPalabras(wordsData.ExpresionesTiempo, models.TipoTiempo)
 		agregarPalabras(wordsData.Preposiciones, models.TipoPreposicion)
 		agregarPalabras(wordsData.Articulos, models.TipoArticulo)
-		agregarPalabras(wordsData.Adjetivos, models.TipoAdjetivo)
-		agregarPalabras(wordsData.Adverbios, models.TipoAdverbio)
-		agregarPalabras(wordsData.Conjunciones, models.TipoConjuncion)
+		agregarPalabras(wordsData.Adjetivos["apariencia"], models.TipoAdjetivo)
+		agregarPalabras(wordsData.Adjetivos["personalidad"], models.TipoAdjetivo)
+		agregarPalabras(wordsData.Adjetivos["estado"], models.TipoAdjetivo)
+		agregarPalabras(wordsData.Adverbios["tiempo"], models.TipoAdverbio)
+		agregarPalabras(wordsData.Adverbios["modo"], models.TipoAdverbio)
+		agregarPalabras(wordsData.Adverbios["frecuencia"], models.TipoAdverbio)
+
+		// Agregar complementos
+		agregarPalabras(wordsData.Complementos.Objetos, models.TipoComplemento)
+		agregarPalabras(wordsData.Complementos.Lugares, models.TipoComplemento)
+		agregarPalabras(wordsData.Complementos.Comida, models.TipoComplemento)
 	})
 }
 
@@ -87,6 +94,11 @@ func cargarPalabrasDesdeJSON(filepath string) (WordsData, error) {
 	return wordsData, nil
 }
 
+// Función para agregar palabras al diccionario sin metadata
+func agregarPalabras(palabras []string, tipo models.TipoPalabra) {
+	agregarPalabrasConMetadata(palabras, tipo, models.Metadata{})
+}
+
 // Función para agregar palabras con metadata
 func agregarPalabrasConMetadata(palabras []string, tipo models.TipoPalabra, metadata models.Metadata) {
 	mu.Lock()
@@ -99,11 +111,6 @@ func agregarPalabrasConMetadata(palabras []string, tipo models.TipoPalabra, meta
 			Metadata: metadata,
 		}
 	}
-}
-
-// Función para agregar palabras al diccionario sin metadata
-func agregarPalabras(palabras []string, tipo models.TipoPalabra) {
-	agregarPalabrasConMetadata(palabras, tipo, models.Metadata{})
 }
 
 // Función de preprocesamiento del texto

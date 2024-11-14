@@ -1,73 +1,98 @@
 {
   "verbos": {
     "regulares": [
-      "played", "visited", "walked", "talked", "worked", "studied", 
-      "bought", "sold", "taught", "caught", "thought", "brought", 
-      "cleaned", "arrived", "watched", "listened", "helped", "enjoyed",
-      "arrived", "cleaned", "fixed", "danced", "tried", "started", 
-      "finished", "opened", "closed", "called", "invited", "organized"
+      "accepted", "acted", "added", "agreed", "appeared", "asked",
+      "answered", "arrived", "believed", "borrowed", "canceled",
+      "changed", "cleaned", "clicked", "cooked", "danced", 
+      "decided", "disappeared", "divided", "dropped", "ended",
+      "enjoyed", "finished", "fixed", "followed", "graduated",
+      "happened", "helped", "invited", "jumped", "killed",
+      "learned", "liked", "lived", "looked", "moved",
+      "needed", "opened", "ordered", "painted", "passed",
+      "played", "printed", "received", "remembered", "saved",
+      "showed", "started", "stopped", "studied", "talked",
+      "traveled", "tried", "used", "visited", "waited",
+      "walked", "wanted", "watched", "worked"
     ],
     "irregulares": [
-      "went", "saw", "ate", "drove", "wrote", "slept", "bought", 
-      "sold", "taught", "caught", "thought", "began", "took", "had", 
-      "did", "could", "might", "should", "will", "may", "can", "would", 
-      "had", "made", "found", "came", "ran", "kept", "heard", "came", 
-      "gave", "met", "thought", "built", "sent", "became", "knew"
-    ],
-    "auxiliares": [
-      "had", "did", "will", "would", "might", "can", "could", "shall"
-    ],
-    "estado": [
-      "was", "were", "is", "are"
-    ],
-    "modales_pasado": [
-      "could", "might", "would"
-    ],
-    "negativos": [
-      "did not", "didn't"
+      "ate", "became", "began", "broke", "brought", "built",
+      "bought", "caught", "chose", "came", "cut", "drew",
+      "drank", "drove", "fell", "felt", "flew", "found",
+      "forgot", "gave", "got", "grew", "had", "heard",
+      "held", "kept", "knew", "left", "lost", "made",
+      "met", "paid", "put", "ran", "read", "rode",
+      "rang", "rose", "said", "saw", "sent", "sang",
+      "sat", "slept", "spoke", "spent", "stood", "swam",
+      "took", "taught", "told", "thought", "threw", "understood",
+      "went", "won", "wrote", "wore"
     ]
   },
   "sujeto": [
-    "i", "you", "he", "she", "it", "we", "they",
-    "me", "him", "her", "us", "them", "myself", "yourself",
-    "himself", "herself", "itself", "ourselves", "themselves"
+    "I", "you", "he", "she", "it", "we", "they",
+    "John", "Mary", "Tom", "Sarah", "the teacher", "my friend",
+    "the doctor", "the student", "the manager", "my parents",
+    "the children", "everyone", "somebody", "nobody", "anybody"
   ],
-  "complementos": [
-    "football", "music", "movie", "book", "school", "house",
-    "car", "dog", "cat", "computer", "phone", "food", "water",
-    "time", "day", "night", "morning", "evening", "afternoon",
-    "meeting", "party", "holiday", "trip", "journey", "work", "event"
-  ],
+  "complementos": {
+    "objetos": [
+      "ball", "bicycle", "book", "camera", "chair", "computer",
+      "desk", "door", "flower", "game", "guitar", "house",
+      "key", "lamp", "letter", "map", "newspaper", "pencil",
+      "phone", "picture", "radio", "table", "television", "window"
+    ],
+    "lugares": [
+      "airport", "bank", "beach", "cinema", "city", "hospital",
+      "hotel", "library", "museum", "office", "park", "restaurant",
+      "school", "shop", "stadium", "station", "supermarket", "theater",
+      "university", "zoo"
+    ],
+    "comida": [
+      "apple", "bread", "cake", "cheese", "chicken", "coffee",
+      "egg", "fish", "fruit", "hamburger", "ice cream", "juice",
+      "meat", "milk", "pizza", "rice", "salad", "sandwich",
+      "soup", "tea"
+    ]
+  },
   "preposiciones": [
-    "in", "on", "at", "by", "for", "with", "to", "from",
-    "under", "over", "between", "among", "through", "during"
+    "about", "above", "across", "after", "against", "along",
+    "around", "before", "behind", "below", "beside", "between",
+    "down", "during", "except", "from", "in", "inside",
+    "into", "near", "of", "off", "on", "out",
+    "outside", "over", "past", "through", "to", "under",
+    "up", "with", "without"
   ],
-  "articulos": [
-    "a", "an", "the"
-  ],
-  "adjetivos": [
-    "big", "small", "good", "bad", "happy", "sad", "new",
-    "old", "young", "fast", "slow", "hot", "cold", "beautiful", 
-    "expensive", "cheap", "tired", "clean", "dirty", "rich", "poor"
-  ],
-  "adverbios": [
-    "quickly", "slowly", "carefully", "happily", "sadly",
-    "very", "really", "quite", "almost", "always", "never", 
-    "often", "sometimes", "usually", "recently", "today", "yesterday"
-  ],
-  "conjunciones": [
-    "and", "but", "or", "nor", "for", "yet", "so",
-    "because", "although", "unless", "since", "while", "if", "when"
-  ],
-  "tiempos": [
-    "yesterday", "today", "tomorrow", "last week", "last year",
-    "last month", "next week", "next year", "next month",
-    "ago", "later", "soon", "now", "then", "a few days ago", "last night"
-  ],
-  "preguntas_respuestas": [
-    "Yes, I did", "No, I didn't"
-  ],
-  "causa_efecto": [
-    "because", "so"
+  "adjetivos": {
+    "apariencia": [
+      "beautiful", "ugly", "tall", "short", "big", "small",
+      "clean", "dirty", "dark", "light", "thick", "thin"
+    ],
+    "personalidad": [
+      "brave", "clever", "friendly", "funny", "happy", "kind",
+      "lazy", "nervous", "polite", "quiet", "serious", "shy"
+    ],
+    "estado": [
+      "broken", "closed", "empty", "full", "lost", "open",
+      "rich", "poor", "right", "wrong", "safe", "dangerous"
+    ]
+  },
+  "adverbios": {
+    "tiempo": [
+      "early", "late", "now", "soon", "still", "then",
+      "today", "tomorrow", "yesterday", "already", "finally", "just"
+    ],
+    "modo": [
+      "badly", "carefully", "easily", "fast", "hard", "loudly",
+      "quietly", "quickly", "slowly", "well", "properly", "successfully"
+    ],
+    "frecuencia": [
+      "always", "never", "often", "rarely", "seldom", "sometimes",
+      "usually", "frequently", "occasionally", "regularly"
+    ]
+  },
+  "expresiones_tiempo": [
+    "last night", "last week", "last month", "last year",
+    "yesterday morning", "yesterday afternoon", "yesterday evening",
+    "two days ago", "three weeks ago", "a month ago",
+    "in the past", "the other day"
   ]
 }
