@@ -254,9 +254,18 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		"no":    true,
 	}
 
+	// Variables para rastrear detalles importantes
+	primeraAparicionWasWere := -1
+	primerSujeto := -1
+	posicionesPermitidas := map[models.TipoPalabra]bool{
+		models.TipoPreposicion: true,
+		models.TipoComplemento: true,
+		models.TipoArticulo:    true,
+		models.TipoAdjetivo:    true,
+	}
+
 	// Recorrer tokens y actualizar elementos
 	for i, token := range tokens {
-
 		// Verificar palabras negativas
 		if palabrasNegativas[token.Texto] {
 			return "Inválida", "No se permiten construcciones negativas en oraciones afirmativas."
@@ -267,17 +276,53 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 			return "Inválida", "No se permiten verbos auxiliares en pasado simple afirmativo."
 		}
 
+		// Actualizar la primera aparición de was/were
+		if token.Texto == "was" || token.Texto == "were" {
+			if primeraAparicionWasWere == -1 {
+				primeraAparicionWasWere = i
+			}
+			elementos[models.TipoVerboSimple].Encontrado = true
+			elementos[models.TipoVerboSimple].Posicion = i
+			elementos[models.TipoVerboSimple].Cantidad++
+		}
+
+		// Actualizar el primer sujeto
+		if token.Tipo == models.TipoSujeto {
+			if primerSujeto == -1 {
+				primerSujeto = i
+			}
+			elementos[models.TipoSujeto].Encontrado = true
+			elementos[models.TipoSujeto].Posicion = i
+			elementos[models.TipoSujeto].Cantidad++
+		}
+
+		// Actualizar otros elementos de la oración
 		if elemento, existe := elementos[token.Tipo]; existe && !elemento.Encontrado {
 			elemento.Encontrado = true
 			elemento.Posicion = i
 			elemento.Cantidad++
 		}
 
-		// Tratar "was" y "were" como verbos válidos en pasado
-		if token.Texto == "was" || token.Texto == "were" {
-			elementos[models.TipoVerboSimple].Encontrado = true
-			elementos[models.TipoVerboSimple].Posicion = i
-			elementos[models.TipoVerboSimple].Cantidad++
+		// Marcar complementos
+		if token.Tipo == models.TipoComplemento {
+			elementos[models.TipoComplemento].Encontrado = true
+			elementos[models.TipoComplemento].Posicion = i
+			elementos[models.TipoComplemento].Cantidad++
+		}
+	}
+
+	// Validaciones estrictas
+	// Verificar que haya un sujeto antes de was/were
+	if primeraAparicionWasWere != -1 {
+		if primerSujeto == -1 || primerSujeto >= primeraAparicionWasWere {
+			return "Inválida", "Falta un sujeto antes del verbo 'was' o 'were'."
+		}
+
+		// Verificar que no haya tokens no permitidos entre sujeto y verbo
+		for i := primerSujeto + 1; i < primeraAparicionWasWere; i++ {
+			if !posicionesPermitidas[tokens[i].Tipo] {
+				return "Inválida", "El verbo debe seguir inmediatamente al sujeto."
+			}
 		}
 	}
 
@@ -293,26 +338,6 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 
 	if !tieneVerboSimple && !tieneVerboEstado && !tieneVerboModalPasado {
 		return "Inválida", "Falta un verbo en pasado en la oración."
-	}
-
-	// Determinar la posición del verbo
-	var posicionVerbo int
-	if tieneVerboSimple {
-		posicionVerbo = elementos[models.TipoVerboSimple].Posicion
-	} else if tieneVerboEstado {
-		posicionVerbo = elementos[models.TipoVerboEstado].Posicion
-	} else {
-		posicionVerbo = elementos[models.TipoVerboModalPasado].Posicion
-	}
-
-	// Verificar que el verbo siga al sujeto
-	if elementos[models.TipoSujeto].Posicion > posicionVerbo {
-		return "Inválida", "El verbo debe seguir al sujeto."
-	}
-
-	// Verificar que el complemento siga al verbo, si existe
-	if elementos[models.TipoComplemento].Encontrado && posicionVerbo > elementos[models.TipoComplemento].Posicion {
-		return "Inválida", "El complemento debe ir después del verbo."
 	}
 
 	// Verificar que no haya construcciones negativas incorrectas
