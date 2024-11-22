@@ -17,7 +17,7 @@
 
       <div class="main-content">
         <div class="document-header">
-          <h1 class="document-title">Grammar Validator Simple Past</h1>
+          <h1 class="document-title">Grammatical validator Past simple affirmative</h1>
         </div>
 
         <form action="/validate" method="POST">
@@ -26,12 +26,12 @@
               <textarea
                 name="oraciones"
                 class="input-field"
-                placeholder="Introduce tu texto para validar la gramática..."
+                placeholder="Enter your text to validate the grammar..."
                 rows="10"
               ></textarea>
             </div>
             <button type="submit" class="submit-button">
-              Validar Gramática
+              Validate Grammar
             </button>
           </div>
         </form>
@@ -39,7 +39,7 @@
 
       <div class="sidebar-right">
         <div class="review-header">
-          <h2 class="review-title">Sugerencias</h2>
+          <h2 class="review-title">Suggestions</h2>
           <span class="badge">{{.TotalOraciones}}</span>
         </div>
 
@@ -47,14 +47,14 @@
           {{range .Oraciones}}
           <div class="suggestion {{if .EsValida}}valid{{else}}invalid{{end}}">
             <div class="suggestion-header">
-              <span class="badge">{{if .EsValida}}Válida{{else}}Error{{end}}</span>
+              <span class="badge">{{if .EsValida}}Valid{{else}}Error{{end}}</span>
             </div>
             <p>{{.Oracion}}</p>
             <p><small>{{.Explicacion}}</small></p>
           </div>
           {{else}}
           <div class="suggestion">
-            <p>No se encontraron errores gramaticales.</p>
+            <p>No grammatical errors were found.</p>
           </div>
           {{end}}
         </div>
@@ -76,7 +76,7 @@
           const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
 
           if (lines.length > maxLines || sentences.length > maxSentences) {
-            alert("Has alcanzado el número máximo permitido de líneas o oraciones.");
+            alert("You have reached the maximum number of lines or sentences allowed.");
             submitButton.disabled = true;
           } else {
             submitButton.disabled = false;

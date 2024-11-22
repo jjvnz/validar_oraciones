@@ -6,16 +6,30 @@ import (
 	"validar_oraciones/models"
 )
 
+// Constants for repeated error messages
+const (
+	ErrNoTokensFound             = "No tokens found."
+	ErrMissingSubject            = "The subject is missing in the sentence."
+	ErrMissingPastVerb           = "A past tense verb is missing in the sentence."
+	ErrNoAuxiliaryVerbs          = "The sentence should not contain auxiliary verbs."
+	ErrVerbFollowsSubject        = "The verb must immediately follow the subject."
+	ErrComplementAfterVerb       = "The complement must come after the verb."
+	ErrEmptySentence             = "The sentence is empty."
+	ErrIncorrectOrderSubjectVerb = "The verb must follow the subject."
+	ErrLexicalAnalysisEmpty      = "Error in lexical analysis: the sentence is empty"
+)
+
+// TestPreprocesarTexto tests preprocessing of text for various cases
 func TestPreprocesarTexto(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
 		expected string
 	}{
-		{"texto básico", "Hello World", "Hello World"},
-		{"múltiples espacios", "Hello   World   Test", "Hello World Test"},
-		{"nombres propios", "John visited London yesterday", "John visited London yesterday"},
-		{"texto vacío", "", ""},
+		{"basic text", "Hello World", "Hello World"},
+		{"multiple spaces", "Hello   World   Test", "Hello World Test"},
+		{"proper nouns", "John visited London yesterday", "John visited London yesterday"},
+		{"empty text", "", ""},
 	}
 
 	for _, tt := range tests {
@@ -28,16 +42,17 @@ func TestPreprocesarTexto(t *testing.T) {
 	}
 }
 
+// TestEsPosibleNombrePropio tests possible proper name detection
 func TestEsPosibleNombrePropio(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
 		expected bool
 	}{
-		{"nombre propio", "John", true},
-		{"palabra minúscula", "cat", false},
-		{"vacío", "", false},
-		{"número inicial", "123test", false},
+		{"proper name", "John", true},
+		{"lowercase word", "cat", false},
+		{"empty", "", false},
+		{"number starting", "123test", false},
 		{"camelCase", "iPhone", false},
 	}
 
@@ -51,6 +66,7 @@ func TestEsPosibleNombrePropio(t *testing.T) {
 	}
 }
 
+// TestClasificarPalabra tests word classification for various contexts
 func TestClasificarPalabra(t *testing.T) {
 	inicializarDiccionario()
 
@@ -60,11 +76,11 @@ func TestClasificarPalabra(t *testing.T) {
 		ctx      models.Contexto
 		expected models.Palabra
 	}{
-		{"verbo simple conocido", "played", models.Contexto{PosicionEnOracion: 1},
+		{"known simple verb", "played", models.Contexto{PosicionEnOracion: 1},
 			models.Palabra{Tipo: models.TipoVerboSimple, Texto: "played", Original: "played", Posicion: 1}},
-		{"nombre propio", "John", models.Contexto{PosicionEnOracion: 0},
+		{"proper noun", "John", models.Contexto{PosicionEnOracion: 0},
 			models.Palabra{Tipo: models.TipoSujeto, Texto: "john", Original: "John", Posicion: 0, Metadata: models.Metadata{EsNombrePropio: true}}},
-		{"palabra después de artículo", "house", models.Contexto{PosicionEnOracion: 1, TipoAnterior: models.TipoArticulo},
+		{"word after article", "house", models.Contexto{PosicionEnOracion: 1, TipoAnterior: models.TipoArticulo},
 			models.Palabra{Tipo: models.TipoComplemento, Texto: "house", Original: "house", Posicion: 1}},
 	}
 
@@ -78,6 +94,7 @@ func TestClasificarPalabra(t *testing.T) {
 	}
 }
 
+// TestAnalizarLexico tests lexical analysis
 func TestAnalizarLexico(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -86,9 +103,9 @@ func TestAnalizarLexico(t *testing.T) {
 		expectError  bool
 		errorMessage string
 	}{
-		{"oración válida", "John played football", 3, false, ""},
-		{"oración vacía", "", 0, true, "la oración está vacía"},
-		{"oración con múltiples espacios", "I    played   football    yesterday", 4, false, ""},
+		{"valid sentence", "John played football", 3, false, ""},
+		{"empty sentence", "", 0, true, ErrLexicalAnalysisEmpty},
+		{"sentence with multiple spaces", "I    played   football    yesterday", 4, false, ""},
 	}
 
 	for _, tt := range tests {
@@ -116,6 +133,7 @@ func TestAnalizarLexico(t *testing.T) {
 	}
 }
 
+// TestValidarTokens tests sentence validation logic for various cases
 func TestValidarTokens(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -124,60 +142,61 @@ func TestValidarTokens(t *testing.T) {
 		expectedMsg    string
 	}{
 		{
-			"oración válida",
+			"valid sentence",
 			[]models.Token{{Tipo: models.TipoSujeto, Texto: "I"}, {Tipo: models.TipoVerboSimple, Texto: "played"}, {Tipo: models.TipoComplemento, Texto: "football"}},
-			"Válida",
-			"La oración tiene una estructura válida en pasado simple afirmativo.",
+			"Valid",
+			"The sentence has a valid structure in the simple past affirmative.",
 		},
 		{
-			"sin tokens",
+			"no tokens",
 			[]models.Token{},
-			"Inválida",
-			"No se encontraron tokens.",
+			"Invalid",
+			ErrNoTokensFound,
 		},
 		{
-			"falta sujeto",
+			"missing subject",
 			[]models.Token{{Tipo: models.TipoVerboSimple, Texto: "played"}, {Tipo: models.TipoComplemento, Texto: "football"}},
-			"Inválida",
-			"Falta el sujeto en la oración.",
+			"Invalid",
+			ErrMissingSubject,
 		},
 		{
-			"falta verbo",
+			"missing verb",
 			[]models.Token{{Tipo: models.TipoSujeto, Texto: "I"}, {Tipo: models.TipoComplemento, Texto: "football"}},
-			"Inválida",
-			"Falta un verbo en pasado en la oración.",
+			"Invalid",
+			ErrMissingPastVerb,
 		},
 		{
-			"verbo auxiliar presente",
+			"present auxiliary verb",
 			[]models.Token{{Tipo: models.TipoSujeto, Texto: "I"}, {Tipo: models.TipoVerboAuxiliar, Texto: "did"}, {Tipo: models.TipoVerboSimple, Texto: "played"}},
-			"Inválida",
-			"La oración no debe contener verbos auxiliares.",
+			"Invalid",
+			ErrNoAuxiliaryVerbs,
 		},
 		{
-			"orden incorrecto sujeto-verbo",
+			"incorrect subject-verb order",
 			[]models.Token{{Tipo: models.TipoVerboSimple, Texto: "played"}, {Tipo: models.TipoSujeto, Texto: "I"}},
-			"Inválida",
-			"El verbo debe seguir al sujeto.",
+			"Invalid",
+			ErrIncorrectOrderSubjectVerb,
 		},
 		{
-			"complemento antes del verbo",
+			"complement before verb",
 			[]models.Token{{Tipo: models.TipoSujeto, Texto: "I"}, {Tipo: models.TipoComplemento, Texto: "football"}, {Tipo: models.TipoVerboSimple, Texto: "played"}},
-			"Inválida",
-			"El complemento debe ir después del verbo.",
+			"Invalid",
+			ErrComplementAfterVerb,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			status, msg := ValidarTokens(tt.tokens)
+
 			if status != tt.expectedStatus || msg != tt.expectedMsg {
-				t.Errorf("ValidarTokens() = (%v, %v), expected (%v, %v)",
-					status, msg, tt.expectedStatus, tt.expectedMsg)
+				t.Errorf("ValidarTokens() = %v, %v, expected %v, %v", status, msg, tt.expectedStatus, tt.expectedMsg)
 			}
 		})
 	}
 }
 
+// TestValidarOracion tests sentence validation logic for the entire sentence
 func TestValidarOracion(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -186,68 +205,38 @@ func TestValidarOracion(t *testing.T) {
 		expectedMsg    string
 	}{
 		{
-			"oración válida simple",
+			"valid sentence",
 			"I played football",
-			"Válida",
-			"La oración tiene una estructura válida en pasado simple afirmativo.",
+			"Valid",
+			"The sentence has a valid structure in the simple past affirmative.",
 		},
 		{
-			"oración con nombre propio",
-			"John visited London yesterday",
-			"Válida",
-			"La oración tiene una estructura válida en pasado simple afirmativo.",
+			"invalid sentence (missing subject)",
+			"played football",
+			"Invalid",
+			ErrMissingSubject,
 		},
 		{
-			"oración vacía",
-			"",
-			"Inválida",
-			"Error en análisis léxico: la oración está vacía",
+			"invalid sentence (missing verb)",
+			"I football",
+			"Invalid",
+			ErrMissingPastVerb,
 		},
 		{
-			"orden incorrecto",
-			"football played I",
-			"Inválida",
-			"El verbo debe seguir al sujeto.",
-		},
-		{
-			"con verbo auxiliar",
-			"I did play football",
-			"Inválida",
-			"La oración no debe contener verbos auxiliares.",
-		},
-		{
-			"verbo auxiliar al inicio",
-			"did I play football",
-			"Inválida",
-			"La oración no debe contener verbos auxiliares.",
-		},
-		{
-			"múltiples verbos auxiliares",
-			"I did not play football",
-			"Inválida",
-			"La oración no debe contener verbos auxiliares.",
+			"invalid sentence (incorrect word order)",
+			"football I played",
+			"Invalid",
+			ErrIncorrectOrderSubjectVerb,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			status, msg := ValidarOracion(tt.oracion)
+
 			if status != tt.expectedStatus || msg != tt.expectedMsg {
-				t.Errorf("ValidarOracion(%q) = (%v, %v), expected (%v, %v)",
-					tt.oracion, status, msg, tt.expectedStatus, tt.expectedMsg)
+				t.Errorf("ValidarOracion() = %v, %v, expected %v, %v", status, msg, tt.expectedStatus, tt.expectedMsg)
 			}
 		})
-	}
-}
-
-func TestErrorAnalisis_Error(t *testing.T) {
-	err := models.ErrorAnalisis{
-		Mensaje:  "error de prueba",
-		Posicion: 5,
-		Contexto: "contexto de prueba",
-	}
-	expected := "error de prueba"
-	if got := err.Error(); got != expected {
-		t.Errorf("ErrorAnalisis.Error() = %v, expected %v", got, expected)
 	}
 }

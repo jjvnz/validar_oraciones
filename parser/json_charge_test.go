@@ -34,7 +34,7 @@ func TestCargarPalabrasDesdeJSON(t *testing.T) {
 	// Intentamos cargar el archivo de prueba
 	wordsData, err := CargarPalabrasDesdeJSON("../words_test.json")
 	if err != nil {
-		t.Fatalf("Error cargando palabras desde JSON: %v", err)
+		t.Fatalf("Error loading words from JSON: %v", err)
 	}
 
 	// Verificamos que el archivo se cargó correctamente y contiene las palabras esperadas

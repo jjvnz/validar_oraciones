@@ -51,7 +51,7 @@ func inicializarDiccionario() {
 		// Cargar las palabras desde el archivo JSON
 		wordsData, err := cargarPalabrasDesdeJSON("words.json")
 		if err != nil {
-			log.Fatal("Error cargando palabras desde JSON:", err)
+			log.Fatal("Error loading words from JSON:", err)
 			return
 		}
 
@@ -221,10 +221,10 @@ func AnalizarLexico(oracion string) ([]models.Token, error) {
 
 func ValidarTokens(tokens []models.Token) (string, string) {
 	if len(tokens) == 0 {
-		return "Inválida", "No se encontraron tokens."
+		return "Invalid", "No tokens found."
 	}
 
-	// Inicializar elementos de la oración
+	// Initialize sentence elements
 	elementos := map[models.TipoPalabra]*models.ElementoOracion{
 		models.TipoSujeto:           {Encontrado: false, Posicion: -1},
 		models.TipoVerboSimple:      {Encontrado: false, Posicion: -1},
@@ -234,7 +234,7 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		models.TipoNegativo:         {Encontrado: false, Posicion: -1},
 	}
 
-	// Lista de auxiliares no permitidos
+	// List of disallowed auxiliaries
 	auxiliaresNoPermitidos := map[string]bool{
 		"has":  true,
 		"have": true,
@@ -247,14 +247,14 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		"are":  true,
 	}
 
-	// Palabras negativas
+	// Negative words
 	palabrasNegativas := map[string]bool{
 		"not":   true,
 		"never": true,
 		"no":    true,
 	}
 
-	// Variables para rastrear detalles importantes
+	// Variables to track important details
 	primeraAparicionWasWere := -1
 	primerSujeto := -1
 	posicionesPermitidas := map[models.TipoPalabra]bool{
@@ -264,19 +264,19 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		models.TipoAdjetivo:    true,
 	}
 
-	// Recorrer tokens y actualizar elementos
+	// Traverse tokens and update elements
 	for i, token := range tokens {
-		// Verificar palabras negativas
+		// Check for negative words
 		if palabrasNegativas[token.Texto] {
-			return "Inválida", "No se permiten construcciones negativas en oraciones afirmativas."
+			return "Invalid", "Negative constructions are not allowed in affirmative sentences."
 		}
 
-		// Verificar auxiliares no permitidos
+		// Check for disallowed auxiliaries
 		if auxiliaresNoPermitidos[token.Texto] {
-			return "Inválida", "No se permiten verbos auxiliares en pasado simple afirmativo."
+			return "Invalid", "Auxiliary verbs are not allowed in affirmative simple past sentences."
 		}
 
-		// Actualizar la primera aparición de was/were
+		// Update first appearance of was/were
 		if token.Texto == "was" || token.Texto == "were" {
 			if primeraAparicionWasWere == -1 {
 				primeraAparicionWasWere = i
@@ -286,7 +286,7 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 			elementos[models.TipoVerboSimple].Cantidad++
 		}
 
-		// Actualizar el primer sujeto
+		// Update first subject
 		if token.Tipo == models.TipoSujeto {
 			if primerSujeto == -1 {
 				primerSujeto = i
@@ -296,14 +296,14 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 			elementos[models.TipoSujeto].Cantidad++
 		}
 
-		// Actualizar otros elementos de la oración
+		// Update other sentence elements
 		if elemento, existe := elementos[token.Tipo]; existe && !elemento.Encontrado {
 			elemento.Encontrado = true
 			elemento.Posicion = i
 			elemento.Cantidad++
 		}
 
-		// Marcar complementos
+		// Mark complements
 		if token.Tipo == models.TipoComplemento {
 			elementos[models.TipoComplemento].Encontrado = true
 			elementos[models.TipoComplemento].Posicion = i
@@ -311,48 +311,48 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		}
 	}
 
-	// Validaciones estrictas
-	// Verificar que haya un sujeto antes de was/were
+	// Strict validations
+	// Ensure there is a subject before was/were
 	if primeraAparicionWasWere != -1 {
 		if primerSujeto == -1 || primerSujeto >= primeraAparicionWasWere {
-			return "Inválida", "Falta un sujeto antes del verbo 'was' o 'were'."
+			return "Invalid", "A subject is missing before the verb 'was' or 'were'."
 		}
 
-		// Verificar que no haya tokens no permitidos entre sujeto y verbo
+		// Ensure no disallowed tokens between subject and verb
 		for i := primerSujeto + 1; i < primeraAparicionWasWere; i++ {
 			if !posicionesPermitidas[tokens[i].Tipo] {
-				return "Inválida", "El verbo debe seguir inmediatamente al sujeto."
+				return "Invalid", "The verb must immediately follow the subject."
 			}
 		}
 	}
 
-	// Verificar que la oración tenga un sujeto
+	// Ensure the sentence has a subject
 	if !elementos[models.TipoSujeto].Encontrado {
-		return "Inválida", "Falta el sujeto en la oración."
+		return "Invalid", "The subject is missing in the sentence."
 	}
 
-	// Verificar que haya al menos un verbo (incluyendo was/were)
+	// Ensure there is at least one verb (including was/were)
 	tieneVerboSimple := elementos[models.TipoVerboSimple].Encontrado
 	tieneVerboEstado := elementos[models.TipoVerboEstado].Encontrado
 	tieneVerboModalPasado := elementos[models.TipoVerboModalPasado].Encontrado
 
 	if !tieneVerboSimple && !tieneVerboEstado && !tieneVerboModalPasado {
-		return "Inválida", "Falta un verbo en pasado en la oración."
+		return "Invalid", "A past tense verb is missing in the sentence."
 	}
 
-	// Verificar que no haya construcciones negativas incorrectas
+	// Ensure no incorrect negative constructions
 	if elementos[models.TipoNegativo].Encontrado && elementos[models.TipoVerboSimple].Encontrado {
-		return "Inválida", "La oración no puede contener verbos modales y negativos en la misma estructura."
+		return "Invalid", "The sentence cannot contain both modal verbs and negatives in the same structure."
 	}
 
-	return "Válida", "La oración tiene una estructura válida en pasado simple afirmativo."
+	return "Valid", "The sentence has a valid structure in affirmative simple past."
 }
 
-// Función para validar toda la oración
+// Function to validate the entire sentence
 func ValidarOracion(oracion string) (string, string) {
 	tokens, err := AnalizarLexico(oracion)
 	if err != nil {
-		return "Inválida", "Error en análisis léxico: " + err.Error()
+		return "Invalid", "Error in lexical analysis: " + err.Error()
 	}
 	return ValidarTokens(tokens)
 }

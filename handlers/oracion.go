@@ -50,10 +50,10 @@ func (h *OracionHandler) limpiarOracion(oracion string) string {
 func (h *OracionHandler) validarLongitud(oracion string) error {
 	palabras := strings.Fields(oracion)
 	if len(palabras) < h.config.MinPalabras {
-		return fmt.Errorf("la oración debe tener al menos %d palabras", h.config.MinPalabras)
+		return fmt.Errorf("the sentence must have at least %d words", h.config.MinPalabras)
 	}
 	if len(palabras) > h.config.MaxPalabras {
-		return fmt.Errorf("la oración no debe exceder %d palabras", h.config.MaxPalabras)
+		return fmt.Errorf("the sentence should not exceed %d words", h.config.MaxPalabras)
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func (h *OracionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		h.handlePost(w, r)
 	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -81,7 +81,7 @@ func (h *OracionHandler) handleGet(w http.ResponseWriter, _ *http.Request) {
 // handlePost maneja las solicitudes POST
 func (h *OracionHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		h.handleError(w, "Error al procesar el formulario", err)
+		h.handleError(w, "Error processing the form", err)
 		return
 	}
 
@@ -90,7 +90,7 @@ func (h *OracionHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 
 	if len(oraciones) > h.config.MaxOraciones {
 		vars := models.PageVariables{
-			ErrorMessage: fmt.Sprintf("Por favor, ingrese un máximo de %d oraciones.", h.config.MaxOraciones),
+			ErrorMessage: fmt.Sprintf("Please enter a maximum of %d sentences.", h.config.MaxOraciones),
 		}
 		h.renderTemplate(w, vars)
 		return
@@ -102,7 +102,7 @@ func (h *OracionHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	vars := models.PageVariables{
 		Oraciones:        resultados,
 		TotalOraciones:   len(resultados),
-		OracionesValidas: stats.TiposValidos["válidas"],
+		OracionesValidas: stats.TiposValidos["Valids"],
 		ShowResults:      true,
 		Estadisticas:     stats,
 	}
@@ -141,7 +141,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []models.Resultado
 			resultados = append(resultados, models.ResultadoOracion{
 				Oracion:     oracion,
 				EsValida:    false,
-				Mensaje:     "Longitud inválida",
+				Mensaje:     "Invalid length",
 				Explicacion: err.Error(),
 			})
 			continue
@@ -153,7 +153,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []models.Resultado
 			resultados = append(resultados, models.ResultadoOracion{
 				Oracion:     oracion,
 				EsValida:    false,
-				Mensaje:     "Error en el análisis léxico",
+				Mensaje:     "Error in lexical analysis",
 				Explicacion: err.Error(),
 			})
 			continue
@@ -163,7 +163,7 @@ func (h *OracionHandler) validarOraciones(oraciones []string) []models.Resultado
 		validez, explicacion := parser.ValidarTokens(tokens)
 		resultados = append(resultados, models.ResultadoOracion{
 			Oracion:     oracion,
-			EsValida:    validez == "Válida",
+			EsValida:    validez == "Valid",
 			Mensaje:     validez,
 			Explicacion: explicacion,
 		})
@@ -183,7 +183,7 @@ func (h *OracionHandler) calcularEstadisticas(resultados []models.ResultadoOraci
 	for _, r := range resultados {
 		if r.EsValida {
 			validas++
-			stats.TiposValidos["válidas"]++
+			stats.TiposValidos["Valids"]++
 		} else {
 			stats.ErroresComunes[r.Mensaje]++
 		}
@@ -199,8 +199,8 @@ func (h *OracionHandler) calcularEstadisticas(resultados []models.ResultadoOraci
 // renderTemplate renderiza la plantilla con las variables dadas
 func (h *OracionHandler) renderTemplate(w http.ResponseWriter, vars models.PageVariables) {
 	if err := h.templates.Execute(w, vars); err != nil {
-		h.logger.Println("Error al renderizar la plantilla:", err)
-		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
+		h.logger.Println("Error rendering template:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -225,8 +225,8 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 	// Análisis léxico
 	tokens, err := parser.AnalizarLexico(request.Oracion)
 	if err != nil {
-		h.logger.Printf("Error en el análisis léxico: %v", err)
-		http.Error(w, "Error en el análisis de la oración", http.StatusInternalServerError)
+		h.logger.Printf("Error in lexical analysis: %v", err)
+		http.Error(w, "Error in sentence analysis", http.StatusInternalServerError)
 		return
 	}
 
@@ -240,7 +240,7 @@ func (h *OracionHandler) HandleAPIValidation(w http.ResponseWriter, r *http.Requ
 		Explicacion string         `json:"explicacion"`
 	}{
 		Tokens:      tokens,
-		EsValida:    validez == "Válida",
+		EsValida:    validez == "Valid",
 		Mensaje:     validez,
 		Explicacion: explicacion,
 	}
