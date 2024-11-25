@@ -30,7 +30,7 @@ Thumbs.db
 node_modules/
 
 # Archivos generados por Tailwind CSS
-*.css
+static/css/output.css
 
 # Archivos temporales de npm/yarn
 npm-debug.log*
