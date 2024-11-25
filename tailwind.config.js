@@ -1,11 +1,11 @@
-// tailwind.config.js
 module.exports = {
   content: [
-    "./templates/**/*.html", // O la ruta a tus plantillas
-    "./static/js/**/*.js"    // O la ruta a tus scripts
+    "./templates/**/*.html", // Ruta a tus plantillas
+    "./static/js/**/*.js"    // Ruta a tus scripts
   ],
   theme: {
-    extend: {},
+    extend: {},  // Puedes extender el tema si lo necesitas
   },
+  darkMode: 'class',  // Habilita el modo oscuro basado en la clase (esto fuera de `theme`)
   plugins: [],
 }

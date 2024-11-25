@@ -25,3 +25,14 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
+
+# Archivos y directorios de Node.js
+node_modules/
+
+# Archivos generados por Tailwind CSS
+*.css
+
+# Archivos temporales de npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,89 +1,264 @@
 <!DOCTYPE html>
-<html lang="es">
-  <head>
+<html lang="es" class="light">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Grammar Validator</title>
-    <link rel="stylesheet" href="../static/css/custom.css" />
-  </head>
-  <body>
-    <div class="app-container">
-      <div class="sidebar-left">
-        <button title="Settings">⚙️</button>
-        <button title="New Document">📄</button>
-        <button title="Templates">📝</button>
-        <button title="Help">❓</button>
-      </div>
+    <link href="/static/css/output.css" rel="stylesheet">
+    <style>
+        @keyframes slideIn {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-      <div class="main-content">
-        <div class="document-header">
-          <h1 class="document-title">Grammatical validator Past simple affirmative</h1>
+        @keyframes slideOut {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .slide-out {
+            animation: slideOut 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="transition-colors duration-500 bg-white dark:bg-gray-900">
+    <div class="flex flex-col lg:flex-row min-h-screen">
+        <!-- Left sidebar (solo visible en pantallas grandes) -->
+        <div class="lg:w-16 w-full bg-blue-600 dark:bg-blue-800 p-4 flex flex-col items-center space-y-4 fixed lg:relative z-20 lg:block hidden">
+            <button id="settings-btn" class="text-white text-xl hover:bg-blue-700 dark:hover:bg-blue-900 p-2 rounded" title="Settings">⚙️</button>
+            <button id="new-doc-btn" class="text-white text-xl hover:bg-blue-700 dark:hover:bg-blue-900 p-2 rounded" title="New Document">📄</button>
+            <button id="templates-btn" class="text-white text-xl hover:bg-blue-700 dark:hover:bg-blue-900 p-2 rounded" title="Templates">📝</button>
+            <button id="help-btn" class="text-white text-xl hover:bg-blue-700 dark:hover:bg-blue-900 p-2 rounded" title="Help">❓</button>
+            <button id="toggle-theme" class="text-white text-xl hover:bg-blue-700 dark:hover:bg-blue-900 p-2 rounded" title="Toggle Theme">🌙</button>
         </div>
 
-        <form action="/validate" method="POST">
-          <div class="input-area">
-            <div class="textarea-wrapper">
-              <textarea
-                name="oraciones"
-                class="input-field"
-                placeholder="Enter your text to validate the grammar..."
-                rows="10"
-              ></textarea>
+        <!-- Main content -->
+        <div class="flex-1 p-6 lg:pl-32 mt-20 lg:mt-0 ml-0 lg:ml-16">
+            <div class="document-header mb-6">
+                <h1 class="text-3xl font-semibold text-blue-800 dark:text-blue-400">Grammatical Validator</h1>
+                <h2 class="text-xl text-gray-600 dark:text-gray-300">Past Simple Affirmative</h2>
             </div>
-            <button type="submit" class="submit-button">
-              Validate Grammar
-            </button>
-          </div>
-        </form>
-      </div>
 
-      <div class="sidebar-right">
-        <div class="review-header">
-          <h2 class="review-title">Suggestions</h2>
-          <span class="badge">{{.TotalOraciones}}</span>
+            <form action="/validate" method="POST" class="space-y-6" id="grammar-form">
+                <div class="input-area">
+                    <div class="textarea-wrapper">
+                        <textarea
+                            name="oraciones"
+                            class="w-full h-40 p-4 border rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                            placeholder="Enter your text to validate the grammar..."
+                            rows="10"
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 mt-4">
+                        Validate Grammar
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <div class="suggestions-container">
-          {{range .Oraciones}}
-          <div class="suggestion {{if .EsValida}}valid{{else}}invalid{{end}}">
-            <div class="suggestion-header">
-              <span class="badge">{{if .EsValida}}Valid{{else}}Error{{end}}</span>
+        <!-- Right sidebar -->
+        <div class="sidebar-right bg-gray-100 dark:bg-gray-800 lg:w-80 w-full p-6 lg:relative z-10">
+            <div class="review-header mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Suggestions</h2>
+                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm">{{.TotalOraciones}}</span>
             </div>
-            <p>{{.Oracion}}</p>
-            <p><small>{{.Explicacion}}</small></p>
-          </div>
-          {{else}}
-          <div class="suggestion">
-            <p>No grammatical errors were found.</p>
-          </div>
-          {{end}}
+
+            <div class="suggestions-container space-y-4">
+                {{range .Oraciones}}
+                    <div class="suggestion p-4 border rounded-lg shadow-md transition-colors duration-200
+                        {{if .EsValida}}
+                            bg-green-50 dark:bg-green-900/20
+                        {{else}}
+                            bg-red-50 dark:bg-red-900/20
+                        {{end}}
+                        dark:border-gray-600">
+                        <div class="suggestion-header flex justify-between items-center mb-2">
+                            <span class="badge {{if .EsValida}}bg-green-500{{else}}bg-red-500{{end}} text-white px-3 py-1 text-sm rounded-full">
+                                {{if .EsValida}}Valid{{else}}Error{{end}}
+                            </span>
+                        </div>
+                        <p class="text-gray-800 dark:text-gray-200 mb-2">{{.Oracion}}</p>
+                        <p><small class="text-gray-500 dark:text-gray-400">{{.Explicacion}}</small></p>
+                    </div>
+                {{else}}
+                    <div class="suggestion p-4 bg-white dark:bg-gray-700 border rounded-lg shadow-md dark:border-gray-600">
+                        <p class="text-gray-800 dark:text-gray-200">No grammatical errors were found.</p>
+                    </div>
+                {{end}}
+            </div>
         </div>
-      </div>
     </div>
-  </body>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const inputField = document.querySelector('.input-field');
-      const submitButton = document.querySelector('.submit-button');
-      
-      if (inputField && submitButton) {
-        inputField.addEventListener('input', function() {
-          const text = this.value;
-          const maxLines = 10; 
-          const maxSentences = 5; 
-          
-          const lines = text.split('\n').filter(line => line.trim().length > 0);
-          const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
 
-          if (lines.length > maxLines || sentences.length > maxSentences) {
-            alert("You have reached the maximum number of lines or sentences allowed.");
-            submitButton.disabled = true;
-          } else {
-            submitButton.disabled = false;
-          }
+    <!-- Alert Container -->
+    <div id="alert-container" class="fixed top-4 right-4 z-50 flex flex-col gap-4 max-w-md w-full"></div>
+
+    <script>
+        // Alert System
+        class AlertSystem {
+            constructor() {
+                this.container = document.getElementById('alert-container');
+            }
+
+            show({ message, type = 'info', duration = 5000 }) {
+                const alert = this.createAlertElement(message, type);
+                this.container.appendChild(alert);
+                
+                setTimeout(() => {
+                    alert.classList.add('slide-in');
+                }, 100);
+
+                if (duration > 0) {
+                    setTimeout(() => this.close(alert), duration);
+                }
+            }
+
+            createAlertElement(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `${this.getTypeClasses(type)} p-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] opacity-0`;
+                
+                const content = document.createElement('div');
+                content.className = 'flex items-center gap-3';
+                
+                const icon = document.createElement('span');
+                icon.textContent = this.getTypeIcon(type);
+                content.appendChild(icon);
+                
+                const text = document.createElement('p');
+                text.className = 'text-sm font-medium';
+                text.textContent = message;
+                content.appendChild(text);
+                
+                alert.appendChild(content);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = '✕';
+                closeBtn.className = 'ml-4 text-sm hover:opacity-75';
+                closeBtn.onclick = () => this.close(alert);
+                alert.appendChild(closeBtn);
+
+                return alert;
+            }
+
+            getTypeClasses(type) {
+                const classes = {
+                    success: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
+                    error: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200',
+                    warning: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200',
+                    info: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                };
+                return classes[type] || classes.info;
+            }
+
+            getTypeIcon(type) {
+                const icons = {
+                    success: '✓',
+                    error: '✕',
+                    warning: '⚠',
+                    info: 'ℹ'
+                };
+                return icons[type] || icons.info;
+            }
+
+            close(alert) {
+                alert.classList.add('slide-out');
+                setTimeout(() => alert.remove(), 500);
+            }
+        }
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertSystem = new AlertSystem();
+            
+            // Theme handling
+            const toggleTheme = () => {
+                const html = document.documentElement;
+                const isDark = html.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                
+                const themeIcon = document.getElementById('toggle-theme');
+                themeIcon.textContent = isDark ? '🌞' : '🌙';
+                
+                alertSystem.show({
+                    message: `${isDark ? 'Dark' : 'Light'} mode activated`,
+                    type: 'info',
+                    duration: 2000
+                });
+            };
+
+            // Set initial theme
+            if (localStorage.getItem('theme') === 'dark' || 
+                (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('toggle-theme').textContent = '🌞';
+            }
+
+            // Event Listeners
+            document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
+            
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                alertSystem.show({ message: 'Settings panel opening soon...', type: 'info' });
+            });
+
+            document.getElementById('new-doc-btn').addEventListener('click', () => {
+                alertSystem.show({ message: 'Creating new document...', type: 'info' });
+            });
+
+            document.getElementById('templates-btn').addEventListener('click', () => {
+                alertSystem.show({ message: 'Templates will be available soon!', type: 'warning' });
+            });
+
+            document.getElementById('help-btn').addEventListener('click', () => {
+                alertSystem.show({ message: 'Need help? Contact support@validator.com', type: 'info' });
+            });
+
+            // Form validation
+            const form = document.getElementById('grammar-form');
+            const textarea = form.querySelector('textarea');
+
+            textarea.addEventListener('input', function() {
+                const text = this.value;
+                const maxLines = 10;
+                const maxSentences = 5;
+                
+                const lines = text.split('\n').filter(line => line.trim().length > 0);
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+
+                if (lines.length > maxLines || sentences.length > maxSentences) {
+                    alertSystem.show({
+                        message: "Maximum number of lines or sentences reached",
+                        type: "warning"
+                    });
+                }
+            });
+
+            form.addEventListener('submit', function(e) {
+                if (!textarea.value.trim()) {
+                    e.preventDefault();
+                    alertSystem.show({
+                        message: "Please enter some text to validate",
+                        type: "error",
+                        duration: 4000
+                    });
+                    return;
+                }
+            });
         });
-      }
-    });
-  </script>
+    </script>
+</body>
 </html>
-
