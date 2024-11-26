@@ -2,6 +2,7 @@ package validators
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -254,9 +255,47 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		"no":    true,
 	}
 
+	// Conjugation rules for past tense verbs
+	reglasConjugacion := map[string]map[string]bool{
+		"I": {
+			"was": true,
+		},
+		"he": {
+			"was": true,
+		},
+		"she": {
+			"was": true,
+		},
+		"it": {
+			"was": true,
+		},
+		"you": {
+			"were": true,
+		},
+		"we": {
+			"were": true,
+		},
+		"they": {
+			"were": true,
+		},
+	}
+
+	// Canonical mapping of pronouns
+	mapaPronombres := map[string]string{
+		"i":    "I",
+		"he":   "he",
+		"she":  "she",
+		"it":   "it",
+		"you":  "you",
+		"we":   "we",
+		"they": "they",
+	}
+
 	// Variables to track important details
 	primeraAparicionWasWere := -1
 	primerSujeto := -1
+	sujetoTexto := ""
+	verboPasadoTexto := ""
 	posicionesPermitidas := map[models.TipoPalabra]bool{
 		models.TipoPreposicion: true,
 		models.TipoComplemento: true,
@@ -280,6 +319,7 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		if token.Texto == "was" || token.Texto == "were" {
 			if primeraAparicionWasWere == -1 {
 				primeraAparicionWasWere = i
+				verboPasadoTexto = token.Texto
 			}
 			elementos[models.TipoVerboSimple].Encontrado = true
 			elementos[models.TipoVerboSimple].Posicion = i
@@ -290,6 +330,7 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 		if token.Tipo == models.TipoSujeto {
 			if primerSujeto == -1 {
 				primerSujeto = i
+				sujetoTexto = strings.ToLower(token.Texto)
 			}
 			elementos[models.TipoSujeto].Encontrado = true
 			elementos[models.TipoSujeto].Posicion = i
@@ -312,8 +353,34 @@ func ValidarTokens(tokens []models.Token) (string, string) {
 	}
 
 	// Strict validations
-	// Ensure there is a subject before was/were
+	// Ensure correct usage of was/were based on personal pronouns
 	if primeraAparicionWasWere != -1 {
+		// Validate was/were usage
+		if sujetoTexto == "" {
+			return "Invalid", "No subject found for verb validation."
+		}
+
+		// Normalizar el sujeto usando el mapa de pronombres
+		pronombre, existe := mapaPronombres[sujetoTexto]
+		if !existe {
+			return "Invalid", "Unrecognized subject pronoun."
+		}
+
+		// Verificar las reglas de conjugación
+		if reglasConjugacion[pronombre] == nil || !reglasConjugacion[pronombre][verboPasadoTexto] {
+			// Determinar el verbo correcto
+			verbosCorrectos := []string{}
+			for verbo := range reglasConjugacion[pronombre] {
+				verbosCorrectos = append(verbosCorrectos, verbo)
+			}
+
+			return "Invalid", fmt.Sprintf("Incorrect verb form for '%s'. Use '%s'.",
+				pronombre,
+				verbosCorrectos[0],
+			)
+		}
+
+		// Ensure there is a subject before was/were
 		if primerSujeto == -1 || primerSujeto >= primeraAparicionWasWere {
 			return "Invalid", "A subject is missing before the verb 'was' or 'were'."
 		}

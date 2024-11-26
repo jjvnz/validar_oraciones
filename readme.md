@@ -43,6 +43,8 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 3. They watched a movie last night.
 4. We cleaned the house on Saturday.
 5. He studied for the test last week.
+6. I was happy yesterday. (Correcta: "was" es correcto para el pronombre "I")
+7. They were at the park all day. (Correcta: "were" es correcto para el pronombre "they")
 
 **Oraciones incorrectas:**
 
@@ -60,6 +62,12 @@ Este proyecto implementa un servidor web en **Go** para la validación de oracio
 
 5. He studys for the test last week.  
    *(Incorrecto: "studys" debería ser "studied")*
+
+6. I were happy yesterday.
+   (Incorrecto: "were" debería ser "was" para el pronombre "I")
+
+7. They was at the park all day.
+   (Incorrecto: "was" debería ser "were" para el pronombre "they")
 
 ---
 
