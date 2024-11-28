@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Form Validation with Enhanced Performance
     const formValidator = {
-        MAX_LINES: 5,
+        MAX_LINES: 10,
         MAX_SENTENCES: 5,
         alertSystem: new AlertSystem(),
         lastValidatedText: '',
