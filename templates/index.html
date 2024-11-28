@@ -63,21 +63,18 @@
         </div>
 
         <!-- Sidebar -->
-        <div id="sidebar" class="
-            fixed lg:relative z-50 lg:z-0 
+        <div id="sidebar" class="fixed lg:relative z-50 lg:z-0 
             top-0 left-0 bottom-0 w-64 lg:w-16 
             bg-blue-600 dark:bg-blue-800 
             transform -translate-x-full lg:translate-x-0 
             transition-transform duration-300 ease-in-out
             flex flex-col items-center space-y-4 p-4
-            shadow-lg lg:shadow-none
-        ">
+            shadow-lg lg:shadow-none">
             <div class="w-full flex flex-col items-center space-y-4 mt-16 lg:mt-4">
-                <button id="settings-btn" class="
-                    text-white text-xl hover:bg-blue-700 
-                    dark:hover:bg-blue-900 p-2 rounded 
-                    transition w-full flex items-center justify-center
-                " title="Settings">
+                <!-- Settings Button -->
+                <button id="settings-btn" class="text-white text-xl hover:bg-blue-700 
+                    dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                    title="Settings">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -85,11 +82,11 @@
                         <circle cx="12" cy="12" r="3" />
                     </svg>
                 </button>
-                <button id="new-doc-btn" class="
-                    text-white text-xl hover:bg-blue-700 
-                    dark:hover:bg-blue-900 p-2 rounded 
-                    transition w-full flex items-center justify-center
-                " title="New Document">
+
+                <!-- New Document Button -->
+                <button id="new-doc-btn" class="text-white text-xl hover:bg-blue-700 
+                    dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                    title="New Document">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
@@ -98,11 +95,11 @@
                         <line x1="9" y1="16" x2="15" y2="16" />
                     </svg>
                 </button>
-                <button id="templates-btn" class="
-                    text-white text-xl hover:bg-blue-700 
-                    dark:hover:bg-blue-900 p-2 rounded 
-                    transition w-full flex items-center justify-center
-                " title="Templates">
+
+                <!-- Templates Button -->
+                <button id="templates-btn" class="text-white text-xl hover:bg-blue-700 
+                    dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                    title="Templates">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -110,31 +107,48 @@
                         <line x1="9" y1="21" x2="9" y2="9" />
                     </svg>
                 </button>
-                <button id="help-btn" class="
-                    text-white text-xl hover:bg-blue-700 
-                    dark:hover:bg-blue-900 p-2 rounded 
-                    transition w-full flex items-center justify-center
-                " title="Help">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                </button>
-                <button id="toggle-theme" class="
-                    text-white text-xl hover:bg-blue-700 
-                    dark:hover:bg-blue-900 p-2 rounded 
-                    transition w-full flex items-center justify-center
-                " title="Toggle Theme">
+
+                <!-- Help Button (Redirect to GitHub Repository) -->
+                <a href="https://github.com/jjvnz/validar_oraciones" target="_blank">
+                    <button id="help-btn" class="text-white text-xl hover:bg-blue-700 
+                        dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                        title="Go to GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                    </button>
+                </a>
+
+                <!-- Toggle Theme Button -->
+                <button id="toggle-theme" class="text-white text-xl hover:bg-blue-700 
+                    dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                    title="Toggle Theme">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 2a7 7 0 1 0 10 10" />
                     </svg>
                 </button>
+
+                <!-- Link to Documentation Section in GitHub -->
+                <a href="https://github.com/jjvnz/validar_oraciones#documentación" target="_blank">
+                    <button id="templates-btn" class="text-white text-xl hover:bg-blue-700 
+                        dark:hover:bg-blue-900 p-2 rounded transition w-full flex items-center justify-center"
+                        title="View Documentation">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M3 5v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2zm2 0h12v14H5V5z" />
+                            <path d="M9 7h6M9 11h6M9 15h6" />
+                        </svg>
+                    </button>
+                </a>
             </div>
         </div>
+
 
         <!-- Main Content -->
         <div class="flex-1 p-6 lg:pl-24 mt-16 lg:mt-0">

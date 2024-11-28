@@ -1,107 +1,150 @@
-## Documentación del Proyecto de Validación de Oraciones
+# Validación de Oraciones en Pasado Simple Afirmativo
 
-### Descripción del Proyecto
+## Descripción del Proyecto
 
-Este proyecto implementa un servidor web en **Go** para la validación de oraciones en inglés en **pasado simple afirmativo**. El sistema utiliza **análisis gramatical** para examinar la estructura de las oraciones, asegurándose de que sigan las reglas gramaticales del **pasado simple afirmativo**. El análisis gramatical verifica la correcta conjugación de los verbos, el uso adecuado de los sujetos y otros elementos esenciales en la estructura de la oración.
+Este proyecto implementa un sistema de validación gramatical desarrollado en Go, especializado en analizar oraciones en inglés en **pasado simple afirmativo**. La aplicación utiliza técnicas avanzadas de análisis sintáctico para examinar la estructura gramatical de las oraciones, verificando:
+
+- Correcta conjugación de verbos
+- Uso adecuado de pronombres
+- Estructura sintáctica del pasado simple
+- Reglas de concordancia gramatical
+
+### Características Principales
+
+- 🔍 Análisis sintáctico computacional
+- 📝 Validación de oraciones en pasado simple
+- 🧠 Clasificación léxica avanzada
+- 🚦 Detección precisa de errores gramaticales
+
+## Arquitectura Técnica
 
 ### Estructura del Proyecto
 
-- **main.go**: Inicializa el servidor web y define las rutas.
-- **handlers**: Contiene la lógica de manejo de peticiones, como la recepción de oraciones y el despliegue de resultados en el navegador.
-- **parser**: Implementa el análisis gramatical, validando que las oraciones sigan las reglas del **pasado simple afirmativo**.
-- **templates**: Archivos HTML para la interfaz de usuario.
+```
+validar_oraciones
+├─ .dockerignore
+├─ .gitignore
+├─ Dockerfile
+├─ go.mod
+├─ go.sum
+├─ handlers
+│  ├─ oracion.go
+│  └─ oracion_test.go
+├─ main.go
+├─ middleware
+│  └─ middleware.go
+├─ models
+│  ├─ config_test.go
+│  ├─ models.go
+│  └─ models_test.go
+├─ package-lock.json
+├─ package.json
+├─ parser
+│  ├─ json_charge_test.go
+│  ├─ parser.go
+│  └─ parser_test.go
+├─ readme.md
+├─ static
+│  ├─ css
+│  │  └─ tailwind.css
+│  └─ js
+│     └─ scripts.js
+├─ tailwind.config.js
+├─ templates
+│  └─ index.html
+├─ words.json
+└─ words_test.json
 
-### Instalación
+```
 
-1. Clona el repositorio:
+### Componentes del Sistema
 
-   ```bash
-   git clone https://github.com/jjvnz/validar_oraciones.git
-   cd validar_oraciones
-   ```
+1. **Tokenización**: Divide la oración en unidades mínimas
+2. **Clasificación Léxica**: Categoriza cada palabra
+3. **Validación Sintáctica**: Verifica la estructura gramatical
+4. **Reglas de Conjugación**: Valida el uso correcto de verbos
 
-2. Ejecuta el proyecto:
+### Tecnologías Utilizadas
 
-   ```bash
-   go run main.go
-   ```
+- Lenguaje: Go (Golang)
+- Análisis: Procesamiento de lenguaje natural (NLP)
+- Estructuras de Datos: Mapas, Slices
+- Concurrencia: sync.Mutex, sync.Once
 
-3. Abre tu navegador y ve a `http://localhost:8080`.
+## Requisitos Previos
 
-### Ejemplo de Uso
+- Go go 1.23.2
+- Docker (opcional)
 
-1. Ingresa hasta 5 oraciones en inglés, cada una terminada en punto (`.`).
-2. Presiona "Validar Oraciones".
-3. El sistema mostrará si cada oración es válida o no de acuerdo con la estructura gramatical del **pasado simple afirmativo**.
+## Instalación y Configuración
 
-### Ejemplo de Oraciones: 5 oraciones afirmativas correctas en pasado simple y 5 incorrectas
+### Instalación Directa
 
-**Oraciones correctas:**
+```bash
+# Clonar repositorio
+git clone https://github.com/jjvnz/validar_oraciones.git
+cd validar_oraciones
 
-1. I visited my grandmother last weekend.
-2. She played soccer with her friends yesterday.
-3. They watched a movie last night.
-4. We cleaned the house on Saturday.
-5. He studied for the test last week.
-6. I was happy yesterday. (Correcta: "was" es correcto para el pronombre "I")
-7. They were at the park all day. (Correcta: "were" es correcto para el pronombre "they")
+# Instalar dependencias
+go mod download
 
-**Oraciones incorrectas:**
+# Ejecutar proyecto
+go run main.go
+```
 
-1. I visit my grandmother last weekend.  
-   *(Incorrecto: "visit" debería ser "visited")*
+### Instalación con Docker
 
-2. She play soccer with her friends yesterday.  
-   *(Incorrecto: "play" debería ser "played")*
+```bash
+# Construir imagen
+docker build -t validar_oraciones .
 
-3. They watches a movie last night.  
-   *(Incorrecto: "watches" debería ser "watched")*
+# Ejecutar contenedor
+docker run -d -p 8080:8080 validar_oraciones
+```
 
-4. We clean the house on Saturday.  
-   *(Incorrecto: "clean" debería ser "cleaned" para indicar una acción pasada)*
+## Ejemplos de Uso
 
-5. He studys for the test last week.  
-   *(Incorrecto: "studys" debería ser "studied")*
+### Oraciones Válidas
 
-6. I were happy yesterday.
-   (Incorrecto: "were" debería ser "was" para el pronombre "I")
+✅ "I visited my grandmother last weekend."
+✅ "She was happy yesterday."
+✅ "They were at the park."
 
-7. They was at the park all day.
-   (Incorrecto: "was" debería ser "were" para el pronombre "they")
+### Oraciones Inválidas
 
----
+❌ "I visit my grandmother last weekend."
+❌ "She were happy yesterday."
+❌ "They was at the park."
 
-### Construcción y Ejecución con Docker
+## Funcionalidades Detalladas
 
-Para construir y ejecutar el proyecto utilizando Docker, sigue estos pasos:
+- Validación de conjugaciones verbales
+- Verificación de pronombres
+- Detección de estructuras incorrectas
+- Retroalimentación descriptiva de errores
 
-#### Requisitos Previos
+## Desafíos Técnicos Resueltos
 
-Asegúrate de tener [Docker](https://www.docker.com/get-started) instalado en tu sistema.
+- Manejo concurrente de diccionarios
+- Clasificación contextual de palabras
+- Implementación de reglas gramaticales complejas
 
-#### Construcción de la Imagen Docker
+## Contribuciones
 
-1. En la raíz del proyecto, crea una imagen Docker utilizando el siguiente comando:
+Las contribuciones son bienvenidas. Por favor, lea las directrices de contribución antes de enviar un pull request.
 
-   ```bash
-   docker build -t validar_oraciones .
-   ```
+## Licencia
 
-   ```bash
-   sudo docker build --no-cache -t validar_oraciones .
-   ```
+Este proyecto está bajo la Licencia MIT.
 
-   Esto crea una imagen llamada `validar_oraciones` basada en el `Dockerfile` presente en el directorio.
+## Contacto
 
-#### Ejecución del Contenedor Docker
+- Repositorio: https://github.com/jjvnz/validar_oraciones
+- Desarrollador:
+  - Juan Jair Villalobos Núñez
 
-2. Una vez que la imagen se ha construido con éxito, puedes ejecutar el contenedor con el siguiente comando:
+## Próximos Pasos
 
-   ```bash
-   docker run -d -p 8080:8080 validar_oraciones
-   ```
-
-   - `-d`: Ejecuta el contenedor en segundo plano (modo "detached").
-   - `-p 8080:8080`: Mapea el puerto 8080 del contenedor al puerto 8080 de tu máquina local.
-
-3. Abre tu navegador y ve a `http://localhost:8080`.
+- [ ] Soporte para más tiempos verbales
+- [ ] Mejora del sistema de clasificación léxica
+- [ ] Implementación de machine learning
