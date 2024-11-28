@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
         show({ message, type = 'info', duration = 5000 }) {
             const alertConfig = AlertSystem.TYPES[type] || AlertSystem.TYPES.info;
             const alert = this.createAlertElement(message, alertConfig);
-            
+
             this.container.appendChild(alert);
-            
+
             // Use requestAnimationFrame for smoother animation
             requestAnimationFrame(() => {
                 alert.classList.add('slide-in');
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggle() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
-            
+
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
             const themeIcon = document.getElementById('toggle-theme');
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         init() {
             this.alertSystem = new AlertSystem();
-            
+
             // Improved theme detection
             const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
             const savedTheme = localStorage.getItem('theme');
@@ -111,9 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Form Validation with Enhanced Performance
     const formValidator = {
-        MAX_LINES: 10,
+        MAX_LINES: 5,
         MAX_SENTENCES: 5,
         alertSystem: new AlertSystem(),
+        lastValidatedText: '',
 
         init(form) {
             this.form = form;
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         validate() {
             const text = this.textarea.value.trim();
-            
+
             // Memoize validation to reduce unnecessary processing
             if (text === this.lastValidatedText) return;
             this.lastValidatedText = text;
@@ -135,32 +136,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const sentences = (text.match(/[^.!?]+[.!?]+/g) || [])
                 .filter(sentence => sentence.trim().length > 0);
 
-            let errorMessage = '';
-            const isValid = this.checkValidation(lines, sentences, errorMessage);
+            const errorMessage = this.checkValidation(lines, sentences);
 
-            this.updateSubmitButton(isValid, errorMessage);
+            this.updateSubmitButton(errorMessage);
         },
 
-        checkValidation(lines, sentences, errorMessage) {
+        checkValidation(lines, sentences) {
             if (lines.length > this.MAX_LINES) {
-                errorMessage = `Maximum number of lines (${this.MAX_LINES}) exceeded`;
-                return false;
+                return `Maximum number of lines (${this.MAX_LINES}) exceeded`;
             }
 
             if (sentences.length > this.MAX_SENTENCES) {
-                errorMessage = `Maximum number of sentences (${this.MAX_SENTENCES}) exceeded`;
-                return false;
+                return `Maximum number of sentences (${this.MAX_SENTENCES}) exceeded`;
             }
 
-            return true;
+            return '';
         },
 
-        updateSubmitButton(isValid, errorMessage) {
+        updateSubmitButton(errorMessage) {
+            const isValid = !errorMessage;
+
             this.submitButton.disabled = !isValid;
             this.submitButton.classList.toggle('opacity-50', !isValid);
             this.submitButton.classList.toggle('cursor-not-allowed', !isValid);
 
-            if (!isValid) {
+            if (errorMessage) {
                 this.alertSystem.show({
                     message: errorMessage,
                     type: "warning",
@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     formValidator.init(document.getElementById('grammar-form'));
 
     // Simplified event listeners for buttons
+    const alertSystem = new AlertSystem();
+
     const buttonActions = {
         'settings-btn': () => alertSystem.show({ message: 'Settings panel opening soon...', type: 'info' }),
         'new-doc-btn': () => alertSystem.show({ message: 'Creating new document...', type: 'info' }),
