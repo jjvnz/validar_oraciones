@@ -18,6 +18,45 @@ Este proyecto implementa un sistema de validación gramatical desarrollado en Go
 
 ## Arquitectura Técnica
 
+### Estructura del Proyecto
+
+```
+validar_oraciones
+├─ .dockerignore
+├─ .gitignore
+├─ Dockerfile
+├─ go.mod
+├─ go.sum
+├─ handlers
+│  ├─ oracion.go
+│  └─ oracion_test.go
+├─ main.go
+├─ middleware
+│  └─ middleware.go
+├─ models
+│  ├─ config_test.go
+│  ├─ models.go
+│  └─ models_test.go
+├─ package-lock.json
+├─ package.json
+├─ parser
+│  ├─ json_charge_test.go
+│  ├─ parser.go
+│  └─ parser_test.go
+├─ readme.md
+├─ static
+│  ├─ css
+│  │  └─ tailwind.css
+│  └─ js
+│     └─ scripts.js
+├─ tailwind.config.js
+├─ templates
+│  └─ index.html
+├─ words.json
+└─ words_test.json
+
+```
+
 ### Componentes del Sistema
 
 1. **Tokenización**: Divide la oración en unidades mínimas
@@ -34,7 +73,7 @@ Este proyecto implementa un sistema de validación gramatical desarrollado en Go
 
 ## Requisitos Previos
 
-- Go 1.16+
+- Go go 1.23.2
 - Docker (opcional)
 
 ## Instalación y Configuración
