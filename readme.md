@@ -64,6 +64,12 @@ validar_oraciones
 3. **Validación Sintáctica**: Verifica la estructura gramatical
 4. **Reglas de Conjugación**: Valida el uso correcto de verbos
 
+### Diagrama de Flujo de Validación de Oraciones
+
+![Diagrama de Flujo de Validación de Oraciones](https://github.com/user-attachments/assets/ff448646-e242-4471-b0f2-84ecb2fe2e0c)
+
+
+
 ### Tecnologías Utilizadas
 
 - Lenguaje: Go (Golang)
