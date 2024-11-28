@@ -154,3 +154,138 @@ Este proyecto está bajo la Licencia MIT.
 - [ ] Soporte para más tiempos verbales
 - [ ] Mejora del sistema de clasificación léxica
 - [ ] Implementación de machine learning
+
+### Inicialización del diccionario de palabras
+
+El código incluye una función `inicializarDiccionario()` que se ejecuta una sola vez utilizando `sync.Once`:
+
+```go
+var once sync.Once
+
+func inicializarDiccionario() {
+    once.Do(func() {
+        diccionario = make(map[string]models.Palabra, 1000)
+        
+        // Carga y procesamiento de palabras desde JSON
+        wordsData, err := cargarPalabrasDesdeJSON("words.json")
+        if err != nil {
+            log.Fatal("Error loading words from JSON:", err)
+            return
+        }
+        
+        // Agrega palabras a diferentes categorías del diccionario
+        agregarPalabras(wordsData.Sujeto, models.TipoSujeto)
+        agregarPalabras(wordsData.Verbos.Regulares, models.TipoVerboSimple)
+        agregarPalabras(wordsData.Verbos.Irregulares.VerbosComunes, models.TipoVerboSimple)
+        // ...
+    })
+}
+```
+
+Esta función carga palabras desde un archivo JSON y las agrega a un diccionario compartido utilizando un mutex para garantizar la concurrencia.
+
+### Función de clasificación de palabras
+
+La función `ClasificarPalabra()` utiliza el diccionario compartido para clasificar palabras:
+
+```go
+func ClasificarPalabra(palabra string, ctx models.Contexto) models.Palabra {
+    inicializarDiccionario()
+
+    palabraOriginal := palabra
+    palabra = strings.ToLower(strings.TrimSpace(palabra))
+
+    mu.RLock()
+    clasificacion, existe := diccionario[palabra]
+    mu.RUnlock()
+
+    if existe {
+        clasificacion.Original = palabraOriginal
+        clasificacion.Posicion = ctx.PosicionEnOracion
+        return clasificacion
+    }
+
+    // Clasificación basada en sufijos y contexto
+    // ...
+}
+```
+
+Esta función utiliza un mutex de solo lectura (`mu.RLock()`) para acceder al diccionario compartido.
+
+### Función de análisis léxico
+
+La función `AnalizarLexico()` analiza una oración y crea tokens:
+
+```go
+func AnalizarLexico(oracion string) ([]models.Token, error) {
+    if strings.TrimSpace(oracion) == "" {
+        return nil, &models.ErrorAnalisis{
+            Mensaje:  "la oración está vacía",
+            Posicion: 0,
+            Contexto: "",
+        }
+    }
+
+    oracion = preprocesarTexto(oracion)
+    palabras := strings.Fields(oracion)
+    tokens := make([]models.Token, 0, len(palabras))
+
+    for i, palabra := range palabras {
+        ctx := obtenerContextoPalabra(palabras, tokens, i)
+        p := ClasificarPalabra(palabra, ctx)
+
+        token := models.Token{
+            Tipo:     p.Tipo,
+            Texto:    p.Texto,
+            Original: p.Original,
+            Posicion: i,
+            Metadata: p.Metadata,
+        }
+
+        tokens = append(tokens, token)
+    }
+
+    return tokens, nil
+}
+```
+
+Esta función divide la oración en palabras y las clasifica utilizando la función `ClasificarPalabra()`.
+
+### Función de validación de tokens
+
+`ValidarTokens()` valida los tokens obtenidos del análisis léxico:
+
+```go
+func ValidarTokens(tokens []models.Token) (string, string) {
+    // ... (validaciones detalladas)
+
+    // Verificaciones estrictas
+    if primeraAparicionWasWere != -1 {
+        // Verificar uso correcto de was/were
+        // Verificar estructura de la frase
+    }
+
+    // Verificar que haya sujeto
+    if !elementos[models.TipoSujeto].Encontrado {
+        return "Invalid", "El sujeto falta en la oración."
+    }
+
+    // Verificar presencia de verbo
+    tieneVerboSimple := elementos[models.TipoVerboSimple].Encontrado
+    tieneVerboEstado := elementos[models.TipoVerboEstado].Encontrado
+    tieneVerboModalPasado := elementos[models.TipoVerboModalPasado].Encontrado
+
+    if !tieneVerboSimple && !tieneVerboEstado && !tieneVerboModalPasado {
+        return "Invalid", "Falta un verbo en tiempo pasado en la oración."
+    }
+
+    // Verificar construcciones negativas incorrectas
+    if elementos[models.TipoNegativo].Encontrado && elementos[models.TipoVerboSimple].Encontrado {
+        return "Invalid", "La oración no puede contener ambas construcciones modales y negativas en la misma estructura."
+    }
+
+    return "Valid", "La oración tiene una estructura válida en presente simple afirmativo."
+}
+```
+
+Esta función realiza varias validaciones estrictas sobre la estructura de la oración, incluyendo el uso correcto de verbos regulares e irregulares, el papel del sujeto y otros elementos. Estos fragmentos muestran cómo se manejan recursos compartidos, se implementa el análisis léxico y se realizan validaciones gramaticales complejas en Go utilizando concurrencia y sincronización con mutexes.
